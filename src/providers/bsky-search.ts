@@ -1,4 +1,4 @@
-import * as cache from './cache.ts'
+import * as cache from '../utils/cache.ts'
 
 const BSKY_API = 'https://api.bsky.app/xrpc/app.bsky.feed.searchPosts'
 

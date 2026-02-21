@@ -1,0 +1,32 @@
+import { formatDate } from './format.ts'
+import type { BskySearchResult } from './providers/bsky-search.ts'
+import type { StandardSearchResult } from './providers/standard-search.ts'
+import type { WikiSearchResult } from './providers/wiki-search.ts'
+import { normalizeBlurb } from './utils/normalize-blurb.ts'
+
+export const renderDdgText = (text: string): string => text
+
+type BskyPost = BskySearchResult['posts'][number]
+type StandardDocument = StandardSearchResult['documents'][number]
+type WikiPage = WikiSearchResult['pages'][number]
+
+export const renderBskyPost = (post: BskyPost, index: number): string =>
+  `${index + 1}. @${post.author.handle} (${formatDate(post.record.createdAt, true)})
+   ${normalizeBlurb(post.record.text)}
+   Likes: ${post.likeCount}  Reposts: ${post.repostCount}  Replies: ${post.replyCount}`
+
+export const renderStandardDoc = (doc: StandardDocument, index: number): string => {
+  const title = doc.date
+    ? `${index + 1}. ${doc.title} (${formatDate(doc.date)})`
+    : `${index + 1}. ${doc.title}`
+  return `${title}
+   ${doc.url}
+   ${normalizeBlurb(doc.snippet)}`
+}
+
+export const renderWikiPage = (page: WikiPage, index: number): string => {
+  const desc = page.description ? `\n   ${normalizeBlurb(page.description)}` : ''
+  return `${index + 1}. ${page.title}
+   https://en.wikipedia.org/wiki/${page.key}${desc}
+   ${normalizeBlurb(page.excerpt)}`
+}

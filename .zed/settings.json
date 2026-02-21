@@ -6,46 +6,31 @@
           "schemas": [
             {
               "fileMatch": ["package.json"],
-              "url": "https://www.schemastore.org/package"
-            }
-          ]
-        }
-      }
-    }
+              "url": "https://www.schemastore.org/package",
+            },
+          ],
+        },
+      },
+    },
   },
   "languages": {
     "JavaScript": {
-      "language_servers": [
-        "typescript-language-server",
-        "!deno",
-        "!vtsls",
-        "!eslint"
-      ],
-      "formatter": "language_server"
+      "language_servers": ["typescript-language-server", "!vtsls", "!eslint"],
+      "formatter": "language_server",
     },
     "TypeScript": {
-      "language_servers": [
-        "typescript-language-server",
-        "!deno",
-        "!vtsls",
-        "!eslint"
-      ],
+      "language_servers": ["typescript-language-server", "!vtsls", "!eslint"],
       "formatter": {
         "external": {
-          "command": "bun",
-          "arguments": ["run", "dprint", "fmt", "--stdin", "{buffer_path}"]
-        }
-      }
+          "command": "npx",
+          "arguments": ["dprint", "fmt", "--stdin", "{buffer_path}"],
+        },
+      },
     },
     "TSX": {
-      "language_servers": [
-        "typescript-language-server",
-        "!deno",
-        "!vtsls",
-        "!eslint"
-      ],
-      "formatter": "language_server"
-    }
+      "language_servers": ["typescript-language-server", "!vtsls", "!eslint"],
+      "formatter": "language_server",
+    },
   },
-  "format_on_save": "on"
+  "format_on_save": "on",
 }

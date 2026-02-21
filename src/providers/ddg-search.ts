@@ -1,7 +1,7 @@
 import { Readability } from '@mozilla/readability'
 import { JSDOM, VirtualConsole } from 'jsdom'
-import * as cache from './cache.ts'
-import { parseResults } from './parse-results.ts'
+import * as cache from '../utils/cache.ts'
+import { parseResults } from '../utils/parse-results.ts'
 
 const DDG_URL = 'https://html.duckduckgo.com/html/'
 const USER_AGENT = 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'

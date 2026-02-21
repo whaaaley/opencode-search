@@ -1,8 +1,7 @@
-import * as cache from './cache.ts'
+import * as cache from '../utils/cache.ts'
+import { USER_AGENT } from '../utils/user-agent.ts'
 
 const WIKI_API = 'https://en.wikipedia.org/w/rest.php/v1/search/page'
-
-const USER_AGENT = 'opencode-search/0.1 (https://github.com/anomalyco/opencode-search)'
 
 type WikiThumbnail = {
   url: string
@@ -64,7 +63,8 @@ export const wikiSearch = async (options: WikiSearchOptions): Promise<WikiSearch
     throw new Error('Wikipedia search returned no results for: ' + query)
   }
 
-  const pages: Array<WikiPage> = json.pages.map((p: WikiPage) => ({
+  const raw: Array<WikiPage> = json.pages
+  const pages: Array<WikiPage> = raw.map((p) => ({
     id: p.id,
     key: p.key,
     title: p.title,
