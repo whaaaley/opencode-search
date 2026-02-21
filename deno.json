@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "exports": "./search.ts",
   "repository": "https://github.com/whaaaley/opencode-search",
-  "description": "OpenCode plugin that provides web search, inter-instance chat, and session management tools.",
+  "description": "OpenCode plugin that provides web search tools using Google CSE and DuckDuckGo.",
   "tasks": {
     "test": "deno test --allow-read --allow-env --allow-write --allow-net",
     "fmt": "deno run -A npm:dprint fmt"

@@ -7,9 +7,9 @@
     "jsr:@std/testing@^1.0.17": "1.0.17",
     "npm:@mozilla/readability@0.5.0": "0.5.0",
     "npm:@opencode-ai/plugin@1.1.12": "1.1.12",
-    "npm:@types/jsdom@27": "27.0.0",
     "npm:@types/jsdom@27.0.0": "27.0.0",
     "npm:@types/node@^25.1.0": "25.3.0",
+    "npm:dprint@*": "0.51.1",
     "npm:jsdom@26.1.0": "26.1.0",
     "npm:typescript@5.9.3": "5.9.3",
     "npm:zod@4.1.8": "4.1.8"
@@ -71,6 +71,61 @@
     "@csstools/css-tokenizer@3.0.4": {
       "integrity": "sha512-Vd/9EVDiu6PPJt9yAh6roZP6El1xHrdvIVGjyBsHR0RYwNHgL7FJPyIIW4fANJNG6FtyZfvlRPpFI4ZM/lubvw=="
     },
+    "@dprint/darwin-arm64@0.51.1": {
+      "integrity": "sha512-C7fkaz0/NGf/X4G9Cq65izdJgerND5jWShOaPiOgGs4A0CyCMKMLRd45m3xKIttuO8x0IQiZVixD22qmVglXmQ==",
+      "os": ["darwin"],
+      "cpu": ["arm64"]
+    },
+    "@dprint/darwin-x64@0.51.1": {
+      "integrity": "sha512-/CESb4SJejshTWb/nO2gucrioKdLD/fK2gKB5Immi4XecAjhkV1HZpUMRLsIeVDQ6ha7xktKbnnvudJRI0maSg==",
+      "os": ["darwin"],
+      "cpu": ["x64"]
+    },
+    "@dprint/linux-arm64-glibc@0.51.1": {
+      "integrity": "sha512-W+QD/4TkQKMPq02uz+ZIz/EI91YEtS2zHBu/Jihx2lfNh3HjUKgyY1KfqCTg2WGJVDkJtPc5KDw+M8yd4rI+Rg==",
+      "os": ["linux"],
+      "cpu": ["arm64"]
+    },
+    "@dprint/linux-arm64-musl@0.51.1": {
+      "integrity": "sha512-P4Cfn8wrdSvdoMoz0HtsC5zZpbh8Kk3OjRzgG4qs/gub5Ba3CCLcVaQvQmIOCvgPzdhPB41eSn5qAK87mh7vCQ==",
+      "os": ["linux"],
+      "cpu": ["arm64"]
+    },
+    "@dprint/linux-loong64-glibc@0.51.1": {
+      "integrity": "sha512-dxDShELBrSGB9PktRqhYrm1UWCL+7N430rGuDTFg+i4d1wL4JD7EI5NDS/5IVbg3lrKJUu6gAJoY9NWF4sZ0mQ==",
+      "os": ["linux"],
+      "cpu": ["loong64"]
+    },
+    "@dprint/linux-loong64-musl@0.51.1": {
+      "integrity": "sha512-l+uNPzUBNxkywGN1HgvTV0CzUDpzXC+s6VEvjYRdVAEKl9TAsIfLMfZifS8rnlOi9hz/0sckmpny+wL40G6dhQ==",
+      "os": ["linux"],
+      "cpu": ["loong64"]
+    },
+    "@dprint/linux-riscv64-glibc@0.51.1": {
+      "integrity": "sha512-YI6SemJRMsLUrtognhkAYOJ67j/AkiufHfx6+cPv/7qO6zBoBL6otR1e5yFYvAgEJOzRZD5g51EdqCcuK19B+g==",
+      "os": ["linux"],
+      "cpu": ["riscv64"]
+    },
+    "@dprint/linux-x64-glibc@0.51.1": {
+      "integrity": "sha512-Hm9ntOWeclXU6/rZGYIN2XjuAhsRUZ77lRJC5EiM1rP6Ayh0J/YMsDdqlPAs+xZGdFFzt8ZeUpqJJJsbc54ZjQ==",
+      "os": ["linux"],
+      "cpu": ["x64"]
+    },
+    "@dprint/linux-x64-musl@0.51.1": {
+      "integrity": "sha512-iUs/9Z4Ky6+2GAK+i1jF1ZwM27CSIGaqw3LxTXtmE8eBCRwyCW+opzn9bzaFtlT9REUAGMC5PXihAPmzP3ttWg==",
+      "os": ["linux"],
+      "cpu": ["x64"]
+    },
+    "@dprint/win32-arm64@0.51.1": {
+      "integrity": "sha512-oXjEL7Blf/160/j7U8MapRzSOVQvLIdAKEZbslIHA4Fwj10fvoDizqpfVU/aVj/BVrlIcZ/+AH8kfSC9XAyjLw==",
+      "os": ["win32"],
+      "cpu": ["arm64"]
+    },
+    "@dprint/win32-x64@0.51.1": {
+      "integrity": "sha512-RM9thb/+Jm6GkXJS+eW+0Pzmz2PNeDk8ZOWcjunE1jv2RabHgm+GbeGpS+WZPOM9W3LSntswv6f4wjzfUkWD0g==",
+      "os": ["win32"],
+      "cpu": ["x64"]
+    },
     "@mozilla/readability@0.5.0": {
       "integrity": "sha512-Z+CZ3QaosfFaTqvhQsIktyGrjFjSC0Fa4EMph4mqKnWhmyoGICsV/8QK+8HpXut6zV7zwfWwqDmEjtk1Qf6EgQ=="
     },
@@ -126,6 +181,24 @@
     },
     "decimal.js@10.6.0": {
       "integrity": "sha512-YpgQiITW3JXGntzdUmyUR1V812Hn8T1YVXhCu+wO3OpS4eU9l4YdD3qjyiKdV6mvV29zapkMeD390UVEf2lkUg=="
+    },
+    "dprint@0.51.1": {
+      "integrity": "sha512-CEx+wYARxLAe9o7RCZ77GKae6DF7qjn5Rd98xbWdA3hB4PFBr+kHwLANmNHscNumBAIrCg5ZJj/Kz+OYbJ+GBA==",
+      "optionalDependencies": [
+        "@dprint/darwin-arm64",
+        "@dprint/darwin-x64",
+        "@dprint/linux-arm64-glibc",
+        "@dprint/linux-arm64-musl",
+        "@dprint/linux-loong64-glibc",
+        "@dprint/linux-loong64-musl",
+        "@dprint/linux-riscv64-glibc",
+        "@dprint/linux-x64-glibc",
+        "@dprint/linux-x64-musl",
+        "@dprint/win32-arm64",
+        "@dprint/win32-x64"
+      ],
+      "scripts": true,
+      "bin": true
     },
     "entities@6.0.1": {
       "integrity": "sha512-aN97NXWF6AWBTahfVOIrB/NShkzi5H7F9r1s9mD3cDj4Ko5f2qhhVoYMibXF7GlLveb/D2ioWay8lxI97Ven3g=="
@@ -299,7 +372,7 @@
       "dependencies": [
         "npm:@mozilla/readability@0.5.0",
         "npm:@opencode-ai/plugin@1.1.12",
-        "npm:@types/jsdom@27",
+        "npm:@types/jsdom@27.0.0",
         "npm:@types/node@^25.1.0",
         "npm:jsdom@26.1.0",
         "npm:typescript@5.9.3"

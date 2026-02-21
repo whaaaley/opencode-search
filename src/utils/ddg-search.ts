@@ -1,5 +1,5 @@
-import { JSDOM, VirtualConsole } from 'jsdom'
 import { Readability } from '@mozilla/readability'
+import { JSDOM, VirtualConsole } from 'jsdom'
 import * as cache from './cache.ts'
 
 const DDG_URL = 'https://html.duckduckgo.com/html/'

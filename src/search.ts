@@ -1,27 +1,32 @@
 import { tool } from '@opencode-ai/plugin'
-import { googleSearch } from './utils/google-search.ts'
 import { ddgSearch } from './utils/ddg-search.ts'
+import { googleSearch } from './utils/google-search.ts'
 
 // deno-lint-ignore no-explicit-any
 const formatGoogleResults = (results: any): string => {
+  const request = results.queries && results.queries.request
+  const totalResults = request && request[0] && request[0].totalResults
+
+  // deno-lint-ignore no-explicit-any
+  const items = results.items
+    ? results.items.map((item: any) => ({
+      title: item.title,
+      link: item.link,
+      snippet: item.snippet,
+    }))
+    : []
+
   return JSON.stringify(
     {
       source: 'google',
-      totalResults: results.queries?.request?.[0]?.totalResults,
-      items:
-        // deno-lint-ignore no-explicit-any
-        results.items?.map((item: any) => ({
-          title: item.title,
-          link: item.link,
-          snippet: item.snippet,
-        })) || [],
+      totalResults,
+      items,
     },
     null,
     2,
   )
 }
 
-// Shared result formatter for DDG results
 const formatDdgResults = (textContent: string) => {
   return JSON.stringify(
     {
@@ -65,8 +70,7 @@ export const webSearchTool = tool({
 })
 
 export const googleSearchTool = tool({
-  description:
-    'Search Google Custom Search Engine and return results with titles, links, and snippets',
+  description: 'Search Google Custom Search Engine and return results with titles, links, and snippets',
   args: {
     query: tool.schema.string().describe('The search query'),
   },

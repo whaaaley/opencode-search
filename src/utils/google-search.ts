@@ -1,17 +1,5 @@
-import { env } from './env.ts'
 import * as cache from './cache.ts'
-
-export type SearchRequestInfo = {
-  title: string
-  totalResults: string
-  searchTerms: string
-  count: number
-  startIndex: number
-  inputEncoding: string
-  outputEncoding: string
-  safe: string
-  cx: string
-}
+import { env } from './env.ts'
 
 export type SearchItem = {
   kind: string
@@ -25,19 +13,12 @@ export type SearchItem = {
   htmlFormattedUrl: string
 }
 
-export type SearchQueries = {
-  request: Array<SearchRequestInfo>
-}
-
-export type SearchUrl = {
-  type: string
-  template: string
-}
-
 export type SearchResult = {
   kind: string
-  url: SearchUrl
-  queries: SearchQueries
+  // deno-lint-ignore no-explicit-any
+  url: any
+  // deno-lint-ignore no-explicit-any
+  queries: any
   items: Array<SearchItem>
 }
 
@@ -51,7 +32,7 @@ export const googleSearch = async (query: string): Promise<SearchResult> => {
   const cacheKey = 'search:' + query
 
   const cached = await cache.get(cacheKey)
-  if (cached && cached.items?.length > 0) {
+  if (cached && cached.items && cached.items.length > 0) {
     return cached
   }
 
@@ -73,7 +54,9 @@ export const googleSearch = async (query: string): Promise<SearchResult> => {
   if (!res.ok) {
     const errorMessage = json.error?.message || 'Unknown error'
     const errorCode = json.error?.code || res.status
-    throw new Error('Google Search API error (' + errorCode + '): ' + errorMessage)
+    throw new Error(
+      ['Google Search API error (', errorCode, '): ', errorMessage].join(''),
+    )
   }
 
   if (!json.items || json.items.length === 0) {
@@ -86,7 +69,9 @@ export const googleSearch = async (query: string): Promise<SearchResult> => {
   })
 
   if (filtered.length === 0) {
-    throw new Error('Google Search returned results but all were from blocked domains for: ' + query)
+    throw new Error(
+      'Google Search returned results but all were from blocked domains for: ' + query,
+    )
   }
 
   const result: SearchResult = { ...json, items: filtered }

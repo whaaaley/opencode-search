@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs'
-import { readFile, writeFile, mkdir } from 'node:fs/promises'
-import { join, dirname } from 'node:path'
+import { readFile, writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const CACHE_FILE = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '.cache')
@@ -34,10 +34,6 @@ const loadCache = async () => {
 }
 
 const saveCache = async () => {
-  const dir = dirname(CACHE_FILE)
-  if (!existsSync(dir)) {
-    await mkdir(dir, { recursive: true })
-  }
   await writeFile(CACHE_FILE, JSON.stringify(store, null, 2))
 }
 

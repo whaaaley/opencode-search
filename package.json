@@ -1,7 +1,7 @@
 {
   "name": "opencode-search",
   "version": "0.0.1",
-  "description": "OpenCode plugin that provides web search, inter-instance chat, and session management tools.",
+  "description": "OpenCode plugin that provides web search tools using Google CSE and DuckDuckGo.",
   "keywords": [
     "opencode",
     "opencode-plugin",
@@ -20,7 +20,7 @@
     "url": "git+https://github.com/whaaaley/opencode-search.git"
   },
   "license": "MIT",
-  "author": "Dustin Whalen",
+  "author": "Dustin Dowell",
   "type": "module",
   "exports": {
     ".": {
@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "@opencode-ai/plugin": "1.1.12",
-    "@types/jsdom": "^27.0.0",
+    "@types/jsdom": "27.0.0",
     "@types/node": "^25.1.0",
     "typescript": "5.9.3"
   },
