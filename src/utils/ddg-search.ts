@@ -1,6 +1,7 @@
 import { Readability } from '@mozilla/readability'
 import { JSDOM, VirtualConsole } from 'jsdom'
 import * as cache from './cache.ts'
+import { parseResults } from './parse-results.ts'
 
 const DDG_URL = 'https://html.duckduckgo.com/html/'
 
@@ -40,17 +41,19 @@ export const ddgSearch = async (query: string): Promise<string> => {
   })
 
   const dom = new JSDOM(html, { url, virtualConsole })
+  const doc = dom.window.document
 
-  const reader = new Readability(dom.window.document)
+  const reader = new Readability(doc)
   const article = reader.parse()
 
-  if (!article) {
-    throw new Error('Could not parse DuckDuckGo results')
+  if (article && article.textContent) {
+    await cache.set(cacheKey, article.textContent)
+    return article.textContent
   }
 
-  const result = article.textContent
+  const result = parseResults(doc)
   if (!result) {
-    throw new Error('DuckDuckGo returned empty results')
+    throw new Error('Could not parse DuckDuckGo results')
   }
 
   await cache.set(cacheKey, result)
