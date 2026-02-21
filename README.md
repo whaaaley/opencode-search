@@ -20,21 +20,42 @@ Restart OpenCode. The plugin will be installed automatically.
 
 Search the web using DuckDuckGo. Returns a text summary of search results.
 
-DuckDuckGo does not provide a structured API. Results are extracted from their instant answer endpoint, which means coverage is limited compared to traditional search engines. It works best for factual queries, definitions, and well-known topics. Complex or niche queries may return empty results.
+| Parameter | Type   | Required |
+| --------- | ------ | -------- |
+| `query`   | string | yes      |
 
-### wiki-search
-
-Search Wikipedia articles using the MediaWiki REST API. Returns structured results with title, description, excerpt, and a direct link to the article. No API key required. Supports a `limit` parameter (1-100, default 50).
+DuckDuckGo does not provide a structured API. Results are extracted from their HTML endpoint, which means coverage is limited compared to traditional search engines. It works best for factual queries, definitions, and well-known topics. Complex or niche queries may return empty results.
 
 ### bsky-search
 
-Search Bluesky posts via the AT Protocol. Returns posts with author, text, and engagement counts (likes, reposts, replies). Supports `limit` and optional `sort` parameters.
+Search Bluesky posts via the AT Protocol. Returns posts with author handle, text, and engagement counts (likes, reposts, replies).
+
+| Parameter | Type   | Required | Description                    |
+| --------- | ------ | -------- | ------------------------------ |
+| `query`   | string | yes      |                                |
+| `limit`   | number | no       | Number of results to return    |
+| `sort`    | string | no       | Sort order: `top` or `latest`  |
 
 ### standard-search
 
-Search [standard.site](https://standard.site) document records on the AT Protocol. Returns blog posts and articles published to the ATmosphere.
+Search [standard.site](https://standard.site) document records on the AT Protocol. Returns blog posts and articles published to the ATmosphere with title, URL, date, and snippet.
 
-standard.site is a publishing platform built on the AT Protocol where content is stored in a user's personal data repository. Unlike traditional websites that require crawlers and indexing pipelines to be discoverable, content published on standard.site is structured, portable, and directly queryable through the AT Protocol. This democratizes access to data: anyone can build tools that read, search, and aggregate content without needing permission from a platform gatekeeper or running expensive web crawlers. Publishing on standard.site means your writing is part of an open network, not locked behind a walled garden.
+| Parameter | Type   | Required | Description                        |
+| --------- | ------ | -------- | ---------------------------------- |
+| `query`   | string | yes      |                                    |
+| `limit`   | number | no       | Number of results to return        |
+| `offset`  | number | no       | Number of results to skip          |
+
+standard.site is a publishing platform built on the AT Protocol where content is stored in a user's personal data repository. Unlike traditional websites that require crawlers and indexing pipelines to be discoverable, content published on standard.site is structured, portable, and directly queryable through the AT Protocol.
+
+### wiki-search
+
+Search Wikipedia articles using the MediaWiki REST API. Returns structured results with title, description, excerpt, and a direct link to the article. No API key required.
+
+| Parameter | Type   | Required | Description                        |
+| --------- | ------ | -------- | ---------------------------------- |
+| `query`   | string | yes      |                                    |
+| `limit`   | number | no       | Number of results (1-100)          |
 
 ## Why not Google?
 
