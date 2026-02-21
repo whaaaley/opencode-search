@@ -5,7 +5,6 @@
     "lib": ["ES2023"],
     "moduleResolution": "bundler",
     "rewriteRelativeImportExtensions": true,
-    "preserveSymlinks": true,
     "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": false,
@@ -18,7 +17,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "types": ["node"]
+    "types": ["bun"]
   },
   "include": ["search.ts", "src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]

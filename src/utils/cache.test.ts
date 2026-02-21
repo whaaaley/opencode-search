@@ -1,5 +1,4 @@
-import { assertEquals } from '@std/assert'
-import { describe, it } from '@std/testing/bdd'
+import { describe, expect, it } from 'bun:test'
 import { get, set } from './cache.ts'
 
 describe('cache', () => {
@@ -10,6 +9,6 @@ describe('cache', () => {
     await set(testKey, testData)
     const result = await get(testKey)
 
-    assertEquals(result, testData)
+    expect(result).toEqual(testData)
   })
 })

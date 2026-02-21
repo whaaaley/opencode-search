@@ -1,12 +1,11 @@
-import { assertEquals } from '@std/assert'
-import { describe, it } from '@std/testing/bdd'
+import { describe, expect, it } from 'bun:test'
 import { googleSearch } from './google-search.ts'
 
 describe('googleSearch', () => {
   it('returns search results', async () => {
     const results = await googleSearch('OpenAI')
 
-    assertEquals(results.kind, 'customsearch#search')
-    assertEquals(results.items.length > 0, true)
+    expect(results.kind).toEqual('customsearch#search')
+    expect(results.items.length > 0).toEqual(true)
   })
 })

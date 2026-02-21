@@ -7,7 +7,6 @@ const CACHE_FILE = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '.c
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000 // 7 days
 
 type CacheEntry = {
-  // deno-lint-ignore no-explicit-any
   data: any
   timestamp: number
 }
@@ -37,7 +36,6 @@ const saveCache = async () => {
   await writeFile(CACHE_FILE, JSON.stringify(store, null, 2))
 }
 
-// deno-lint-ignore no-explicit-any
 export const get = async (key: string): Promise<any> => {
   await loadCache()
 
@@ -56,7 +54,6 @@ export const get = async (key: string): Promise<any> => {
   return entry.data
 }
 
-// deno-lint-ignore no-explicit-any
 export const set = async (key: string, data: any): Promise<void> => {
   await loadCache()
 

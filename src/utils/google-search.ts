@@ -15,9 +15,7 @@ export type SearchItem = {
 
 export type SearchResult = {
   kind: string
-  // deno-lint-ignore no-explicit-any
   url: any
-  // deno-lint-ignore no-explicit-any
   queries: any
   items: Array<SearchItem>
 }

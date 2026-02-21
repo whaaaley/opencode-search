@@ -2,12 +2,10 @@ import { tool } from '@opencode-ai/plugin'
 import { ddgSearch } from './utils/ddg-search.ts'
 import { googleSearch } from './utils/google-search.ts'
 
-// deno-lint-ignore no-explicit-any
 const formatGoogleResults = (results: any): string => {
   const request = results.queries && results.queries.request
   const totalResults = request && request[0] && request[0].totalResults
 
-  // deno-lint-ignore no-explicit-any
   const items = results.items
     ? results.items.map((item: any) => ({
       title: item.title,

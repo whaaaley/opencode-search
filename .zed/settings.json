@@ -1,20 +1,9 @@
 {
   "lsp": {
-    "deno": {
-      "settings": {
-        "deno": {
-          "enable": true
-        }
-      }
-    },
     "json-language-server": {
       "settings": {
         "json": {
           "schemas": [
-            {
-              "fileMatch": ["deno.json", "deno.jsonc"],
-              "url": "https://raw.githubusercontent.com/denoland/deno/refs/heads/main/cli/schemas/config-file.v1.json"
-            },
             {
               "fileMatch": ["package.json"],
               "url": "https://www.schemastore.org/package"
@@ -27,8 +16,8 @@
   "languages": {
     "JavaScript": {
       "language_servers": [
-        "deno",
-        "!typescript-language-server",
+        "typescript-language-server",
+        "!deno",
         "!vtsls",
         "!eslint"
       ],
@@ -36,22 +25,22 @@
     },
     "TypeScript": {
       "language_servers": [
-        "deno",
-        "!typescript-language-server",
+        "typescript-language-server",
+        "!deno",
         "!vtsls",
         "!eslint"
       ],
       "formatter": {
         "external": {
-          "command": "deno",
-          "arguments": ["run", "-A", "npm:dprint", "fmt", "--stdin", "{buffer_path}"]
+          "command": "bun",
+          "arguments": ["run", "dprint", "fmt", "--stdin", "{buffer_path}"]
         }
       }
     },
     "TSX": {
       "language_servers": [
-        "deno",
-        "!typescript-language-server",
+        "typescript-language-server",
+        "!deno",
         "!vtsls",
         "!eslint"
       ],
