@@ -1,5 +1,4 @@
-import { assertEquals } from '@std/assert'
-import { describe, it } from '@std/testing/bdd'
+import { describe, expect, it } from 'bun:test'
 import { JSDOM } from 'jsdom'
 import { parseResults } from './parse-results.ts'
 
@@ -32,7 +31,7 @@ describe('parseResults', () => {
       'Other snippet text',
     ].join('\n')
 
-    assertEquals(result, expected)
+    expect(result).toEqual(expected)
   })
 
   it('skips results with no title', () => {
@@ -54,7 +53,7 @@ describe('parseResults', () => {
       'Kept',
     ].join('\n')
 
-    assertEquals(result, expected)
+    expect(result).toEqual(expected)
   })
 
   it('handles missing snippets', () => {
@@ -66,11 +65,11 @@ describe('parseResults', () => {
       'https://example.com',
     ].join('\n')
 
-    assertEquals(result, expected)
+    expect(result).toEqual(expected)
   })
 
   it('returns empty string for no results', () => {
     const result = parseResults(makeDoc('<div>no results here</div>'))
-    assertEquals(result, '')
+    expect(result).toEqual('')
   })
 })

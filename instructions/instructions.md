@@ -57,3 +57,6 @@ Reason: To allow multi-line formatting that the formatter will not collapse back
 
 Rule: When working through a todo list, complete the easiest tasks first.
 Reason: To build momentum and reduce list size quickly before tackling complex items.
+
+Rule: Do not delegate work to subagents or use the explore/task tool. Do all work directly in the main conversation.
+Reason: To keep all context visible and avoid losing information to subagent boundaries.

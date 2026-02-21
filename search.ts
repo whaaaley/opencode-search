@@ -1,13 +1,20 @@
 import type { Plugin } from '@opencode-ai/plugin'
-import { ddgSearchTool, googleSearchTool, webSearchTool } from './src/search.ts'
+import {
+  createBskySearchTool,
+  createDdgSearchTool,
+  createStandardSearchTool,
+  createWikiSearchTool,
+} from './src/search.ts'
 
-// deno-lint-ignore require-await
-const plugin: Plugin = async () => {
+const plugin: Plugin = async (ctx) => {
+  const { client } = ctx
+
   return {
     tool: {
-      'web-search': webSearchTool,
-      'google-search': googleSearchTool,
-      'ddg-search': ddgSearchTool,
+      'ddg-search': createDdgSearchTool(client),
+      'bsky-search': createBskySearchTool(client),
+      'standard-search': createStandardSearchTool(client),
+      'wiki-search': createWikiSearchTool(client),
     },
   }
 }

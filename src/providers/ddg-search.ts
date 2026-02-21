@@ -1,14 +1,15 @@
 import { Readability } from '@mozilla/readability'
 import { JSDOM, VirtualConsole } from 'jsdom'
-import * as cache from './cache.ts'
-import { parseResults } from './parse-results.ts'
+import * as cache from '../utils/cache.ts'
+import { parseResults } from '../utils/parse-results.ts'
 
 const DDG_URL = 'https://html.duckduckgo.com/html/'
+const USER_AGENT = 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
 
 export const ddgSearch = async (query: string): Promise<string> => {
   const cacheKey = 'ddg:' + query
 
-  const cached = await cache.get(cacheKey)
+  const cached = await cache.get<string>(cacheKey)
   if (cached) {
     return cached
   }
@@ -17,8 +18,7 @@ export const ddgSearch = async (query: string): Promise<string> => {
 
   const response = await fetch(url, {
     headers: {
-      'User-Agent':
-        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+      'User-Agent': USER_AGENT,
       Accept: 'text/html,application/xhtml+xml',
       'Accept-Language': 'en-US,en;q=0.9',
     },
