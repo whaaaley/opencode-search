@@ -1,6 +1,6 @@
 # opencode-search
 
-An [OpenCode](https://opencode.ai) plugin that gives your agent access to web search, Wikipedia, Bluesky, and [standard.site](https://standard.site).
+An [OpenCode](https://opencode.ai) plugin that gives your agent access to DuckDuckGo, Wikipedia, Bluesky, and [standard.site](https://standard.site).
 
 ## Quick Start
 
