@@ -1,6 +1,6 @@
 {
   "name": "opencode-search",
-  "version": "0.0.2",
+  "version": "0.0.4-next.0",
   "description": "OpenCode plugin that provides web search tools using Google CSE, DuckDuckGo, Bluesky, and Standard.site.",
   "keywords": [
     "opencode",
