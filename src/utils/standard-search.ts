@@ -41,8 +41,15 @@ const parseDocument = (el: Element): StandardDocument | null => {
   }
 }
 
-export const standardSearch = async (query: string): Promise<StandardSearchResult> => {
-  const cacheKey = 'standard:' + query
+type StandardSearchOptions = {
+  query: string
+  limit?: number
+  offset?: number
+}
+
+export const standardSearch = async (options: StandardSearchOptions): Promise<StandardSearchResult> => {
+  const { query, limit, offset } = options
+  const cacheKey = ['standard', query, limit ?? 0, offset ?? 0].join(':')
 
   const cached = await cache.get<StandardSearchResult>(cacheKey)
   if (cached && cached.documents && cached.documents.length > 0) {
@@ -87,8 +94,12 @@ export const standardSearch = async (query: string): Promise<StandardSearchResul
     throw new Error('Standard Search returned no results for: ' + query)
   }
 
+  const start = offset ?? 0
+  const end = limit ? start + limit : documents.length
+  const sliced = documents.slice(start, end)
+
   const result: StandardSearchResult = {
-    documents,
+    documents: sliced,
     totalResults,
   }
 

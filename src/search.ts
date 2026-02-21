@@ -3,78 +3,158 @@ import { tool } from '@opencode-ai/plugin'
 import type { BskySearchResult } from './utils/bsky-search.ts'
 import { bskySearch } from './utils/bsky-search.ts'
 import { ddgSearch } from './utils/ddg-search.ts'
-import type { SearchResult } from './utils/google-search.ts'
-import { googleSearch } from './utils/google-search.ts'
 import { sendResult } from './utils/notify.ts'
 import type { StandardSearchResult } from './utils/standard-search.ts'
 import { standardSearch } from './utils/standard-search.ts'
+import type { WikiSearchResult } from './utils/wiki-search.ts'
+import { wikiSearch } from './utils/wiki-search.ts'
 
 type Client = PluginInput['client']
 
-const formatGoogleResults = (results: SearchResult): string => {
-  const request = results.queries.request
-  const totalResults = request && request[0] ? request[0].totalResults : '0'
+type PaginationOptions = {
+  total: number
+  count: number
+  limit?: number
+  offset?: number
+}
 
-  const items = results.items.map((item) => ({
-    title: item.title,
-    link: item.link,
-    snippet: item.snippet,
-  }))
+const formatHeader = (label: string, options: PaginationOptions): string => {
+  const { total, count, limit, offset } = options
+  const start = (offset ?? 0) + 1
+  const end = (offset ?? 0) + count
+  const pageSize = limit ?? count
+  const page = pageSize > 0 ? Math.floor((offset ?? 0) / pageSize) + 1 : 1
+  return label + ' (showing ' + start + '-' + end + ' of ' + total + ', page ' + page + ')'
+}
 
-  return JSON.stringify(
-    {
-      source: 'google',
-      totalResults,
-      items,
-    },
-    null,
-    2,
-  )
+const formatDate = (raw: string): string => {
+  const d = new Date(raw)
+  if (isNaN(d.getTime())) {
+    return raw
+  }
+  const month = d.toLocaleString('en-US', { month: 'short' })
+  const day = d.getDate()
+  const year = d.getFullYear()
+  const hours = d.getHours()
+  const minutes = d.getMinutes()
+  const ampm = hours >= 12 ? 'PM' : 'AM'
+  const h = hours % 12 || 12
+  const m = String(minutes).padStart(2, '0')
+  return month + ' ' + day + ', ' + year + ' ' + h + ':' + m + ' ' + ampm
+}
+
+const formatDateOnly = (raw: string): string => {
+  const d = new Date(raw)
+  if (isNaN(d.getTime())) {
+    return raw
+  }
+  const month = d.toLocaleString('en-US', { month: 'short' })
+  return month + ' ' + d.getDate() + ', ' + d.getFullYear()
 }
 
 const formatDdgResults = (textContent: string): string => {
-  return JSON.stringify(
-    {
-      source: 'duckduckgo',
-      textContent,
-    },
-    null,
-    2,
-  )
+  const lines = [
+    'DuckDuckGo results (showing 1 of 1, page 1)',
+    '',
+    textContent,
+  ]
+  return lines.join('\n')
 }
 
-const formatBskyResults = (results: BskySearchResult): string => {
-  const posts = results.posts.map((post) => ({
-    author: post.author.handle,
-    text: post.record.text,
-    createdAt: post.record.createdAt,
-    likes: post.likeCount,
-    reposts: post.repostCount,
-    replies: post.replyCount,
-    uri: post.uri,
-  }))
-
-  return JSON.stringify(
-    {
-      source: 'bluesky',
-      hitsTotal: results.hitsTotal,
-      posts,
-    },
-    null,
-    2,
-  )
+type FormatBskyOptions = {
+  results: BskySearchResult
+  limit?: number
 }
 
-const formatStandardResults = (results: StandardSearchResult): string => {
-  return JSON.stringify(
-    {
-      source: 'standard.site',
-      totalResults: results.totalResults,
-      documents: results.documents,
-    },
-    null,
-    2,
-  )
+const formatBskyResults = (options: FormatBskyOptions): string => {
+  const { results, limit } = options
+  const header = formatHeader('Bluesky results', {
+    total: results.hitsTotal,
+    count: results.posts.length,
+    limit,
+    offset: 0,
+  })
+
+  const lines: string[] = [header, '']
+  for (let i = 0; i < results.posts.length; i++) {
+    const post = results.posts[i]
+    if (!post) {
+      continue
+    }
+    lines.push(String(i + 1) + '. @' + post.author.handle + ' (' + formatDate(post.record.createdAt) + ')')
+    lines.push('   ' + post.record.text.replace(/\n/g, ' '))
+    lines.push('   Likes: ' + post.likeCount + '  Reposts: ' + post.repostCount + '  Replies: ' + post.replyCount)
+    lines.push('')
+  }
+
+  return lines.join('\n').trimEnd()
+}
+
+type FormatStandardOptions = {
+  results: StandardSearchResult
+  limit?: number
+  offset?: number
+}
+
+const formatStandardResults = (options: FormatStandardOptions): string => {
+  const { results, limit, offset } = options
+  const total = Number(results.totalResults) || results.documents.length
+  const header = formatHeader('Standard.site results', {
+    total,
+    count: results.documents.length,
+    limit,
+    offset,
+  })
+
+  const lines: string[] = [header, '']
+  for (let i = 0; i < results.documents.length; i++) {
+    const doc = results.documents[i]
+    if (!doc) {
+      continue
+    }
+    const titleLine = doc.date
+      ? String(i + 1) + '. ' + doc.title + ' (' + formatDateOnly(doc.date) + ')'
+      : String(i + 1) + '. ' + doc.title
+    lines.push(titleLine)
+    lines.push('   ' + doc.url)
+    lines.push('   ' + doc.snippet)
+    lines.push('')
+  }
+
+  return lines.join('\n').trimEnd()
+}
+
+type FormatWikiOptions = {
+  results: WikiSearchResult
+  limit?: number
+}
+
+const formatWikiResults = (options: FormatWikiOptions): string => {
+  const { results, limit } = options
+  const header = formatHeader('Wikipedia results', {
+    total: results.pages.length,
+    count: results.pages.length,
+    limit,
+    offset: 0,
+  })
+
+  const lines: string[] = [header, '']
+  for (let i = 0; i < results.pages.length; i++) {
+    const page = results.pages[i]
+    if (!page) {
+      continue
+    }
+    const url = 'https://en.wikipedia.org/wiki/' + page.key
+    lines.push(String(i + 1) + '. ' + page.title)
+    lines.push('   ' + url)
+    if (page.description) {
+      lines.push('   ' + page.description)
+    }
+    lines.push('   ' + page.excerpt)
+    lines.push('')
+  }
+
+  return lines.join('\n').trimEnd()
 }
 
 const postResult = (client: Client, ctx: ToolContext, text: string): void => {
@@ -83,56 +163,6 @@ const postResult = (client: Client, ctx: ToolContext, text: string): void => {
     sessionID: ctx.sessionID,
     text,
   }).catch(() => {})
-}
-
-export const createWebSearchTool = (client: Client) => {
-  return tool({
-    description:
-      'Search the web using Google (primary) with DuckDuckGo fallback. Returns a list of results with titles, links, and snippets.',
-    args: {
-      query: tool.schema.string().describe('The search query'),
-    },
-    async execute(args, ctx) {
-      const errors: string[] = []
-
-      try {
-        const results = await googleSearch(args.query)
-        const formatted = formatGoogleResults(results)
-        postResult(client, ctx, formatted)
-        return formatted
-      } catch (error) {
-        const msg = error instanceof Error ? error.message : String(error)
-        errors.push('Google: ' + msg)
-      }
-
-      try {
-        const textContent = await ddgSearch(args.query)
-        const formatted = formatDdgResults(textContent)
-        postResult(client, ctx, formatted)
-        return formatted
-      } catch (error) {
-        const msg = error instanceof Error ? error.message : String(error)
-        errors.push('DuckDuckGo: ' + msg)
-      }
-
-      throw new Error('All search backends failed.\n' + errors.join('\n'))
-    },
-  })
-}
-
-export const createGoogleSearchTool = (client: Client) => {
-  return tool({
-    description: 'Search Google Custom Search Engine and return results with titles, links, and snippets',
-    args: {
-      query: tool.schema.string().describe('The search query'),
-    },
-    async execute(args, ctx) {
-      const results = await googleSearch(args.query)
-      const formatted = formatGoogleResults(results)
-      postResult(client, ctx, formatted)
-      return formatted
-    },
-  })
 }
 
 export const createDdgSearchTool = (client: Client) => {
@@ -155,10 +185,17 @@ export const createBskySearchTool = (client: Client) => {
     description: 'Search Bluesky posts via the AT Protocol. Returns posts with author, text, and engagement counts.',
     args: {
       query: tool.schema.string().describe('The search query'),
+      limit: tool.schema.number().optional().describe('Maximum number of results to return'),
     },
     async execute(args, ctx) {
-      const results = await bskySearch({ query: args.query })
-      const formatted = formatBskyResults(results)
+      const results = await bskySearch({
+        query: args.query,
+        limit: args.limit,
+      })
+      const formatted = formatBskyResults({
+        results,
+        limit: args.limit,
+      })
       postResult(client, ctx, formatted)
       return formatted
     },
@@ -171,10 +208,42 @@ export const createStandardSearchTool = (client: Client) => {
       'Search site.standard.document records on the AT Protocol. Returns blog posts and articles from the ATmosphere.',
     args: {
       query: tool.schema.string().describe('The search query'),
+      limit: tool.schema.number().optional().describe('Maximum number of results to return'),
+      offset: tool.schema.number().optional().describe('Number of results to skip'),
     },
     async execute(args, ctx) {
-      const results = await standardSearch(args.query)
-      const formatted = formatStandardResults(results)
+      const results = await standardSearch({
+        query: args.query,
+        limit: args.limit,
+        offset: args.offset,
+      })
+      const formatted = formatStandardResults({
+        results,
+        limit: args.limit,
+        offset: args.offset,
+      })
+      postResult(client, ctx, formatted)
+      return formatted
+    },
+  })
+}
+
+export const createWikiSearchTool = (client: Client) => {
+  return tool({
+    description: 'Search Wikipedia articles. Returns page titles, descriptions, and excerpts.',
+    args: {
+      query: tool.schema.string().describe('The search query'),
+      limit: tool.schema.number().optional().describe('Maximum number of results to return (1-100)'),
+    },
+    async execute(args, ctx) {
+      const results = await wikiSearch({
+        query: args.query,
+        limit: args.limit,
+      })
+      const formatted = formatWikiResults({
+        results,
+        limit: args.limit,
+      })
       postResult(client, ctx, formatted)
       return formatted
     },
