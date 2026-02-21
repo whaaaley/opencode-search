@@ -1,0 +1,5 @@
+.secrets/
+.trash/
+node_modules/
+dist/
+.env

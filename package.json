@@ -1,0 +1,56 @@
+{
+  "name": "opencode-search",
+  "version": "0.0.1",
+  "description": "OpenCode plugin that provides web search, inter-instance chat, and session management tools.",
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "plugin",
+    "search",
+    "web-search",
+    "google",
+    "duckduckgo"
+  ],
+  "homepage": "https://github.com/whaaaley/opencode-search#readme",
+  "bugs": {
+    "url": "https://github.com/whaaaley/opencode-search/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/whaaaley/opencode-search.git"
+  },
+  "license": "MIT",
+  "author": "Dustin Whalen",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/search.js",
+      "types": "./dist/search.d.ts"
+    }
+  },
+  "main": "./dist/search.js",
+  "types": "./dist/search.d.ts",
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "npm run clean && tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@mozilla/readability": "0.5.0",
+    "jsdom": "26.1.0"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "1.1.12",
+    "@types/jsdom": "^27.0.0",
+    "@types/node": "^25.1.0",
+    "typescript": "5.9.3"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": ">=0.13.7"
+  }
+}

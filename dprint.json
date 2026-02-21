@@ -1,0 +1,12 @@
+{
+  "typescript": {
+    "lineWidth": 120,
+    "useTabs": false,
+    "indentWidth": 2,
+    "semiColons": "asi",
+    "quoteStyle": "preferSingle",
+    "trailingCommas": "onlyMultiLine"
+  },
+  "includes": ["search.ts", "src/**/*.ts", "!src/**/*.test.ts"],
+  "plugins": ["https://plugins.dprint.dev/typescript-0.95.4.wasm"]
+}
