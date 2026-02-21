@@ -1,7 +1,7 @@
 {
   "name": "opencode-search",
   "version": "0.0.2",
-  "description": "OpenCode plugin that provides web search tools using Google CSE and DuckDuckGo.",
+  "description": "OpenCode plugin that provides web search tools using Google CSE, DuckDuckGo, Bluesky, and Standard.site.",
   "keywords": [
     "opencode",
     "opencode-plugin",
@@ -9,7 +9,10 @@
     "search",
     "web-search",
     "google",
-    "duckduckgo"
+    "duckduckgo",
+    "bluesky",
+    "atproto",
+    "standard-site"
   ],
   "homepage": "https://github.com/whaaaley/opencode-search#readme",
   "bugs": {

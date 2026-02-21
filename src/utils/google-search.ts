@@ -13,10 +13,13 @@ export type SearchItem = {
   htmlFormattedUrl: string
 }
 
+type SearchQuery = {
+  totalResults: string
+}
+
 export type SearchResult = {
   kind: string
-  url: any
-  queries: any
+  queries: Record<string, Array<SearchQuery>>
   items: Array<SearchItem>
 }
 
@@ -29,7 +32,7 @@ const BLOCKED_HOSTS = ['twitter.com', 'mobile.twitter.com']
 export const googleSearch = async (query: string): Promise<SearchResult> => {
   const cacheKey = 'search:' + query
 
-  const cached = await cache.get(cacheKey)
+  const cached = await cache.get<SearchResult>(cacheKey)
   if (cached && cached.items && cached.items.length > 0) {
     return cached
   }
@@ -44,7 +47,7 @@ export const googleSearch = async (query: string): Promise<SearchResult> => {
 
   if (!res.ok) {
     const text = await res.text()
-    throw new Error('Google Search API error (' + res.status + '): ' + text)
+    throw new Error(['Google Search API error (', res.status, '): ', text].join(''))
   }
 
   const json = await res.json()
@@ -59,10 +62,10 @@ export const googleSearch = async (query: string): Promise<SearchResult> => {
   })
 
   if (filtered.length === 0) {
-    throw new Error('Google Search returned results but all were from blocked domains for: ' + query)
+    throw new Error('Google Search: all results were from blocked domains for: ' + query)
   }
 
-  const result: SearchResult = { ...json, items: filtered }
+  const result = { ...json, items: filtered }
   await cache.set(cacheKey, result)
 
   return result

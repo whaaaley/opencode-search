@@ -9,7 +9,7 @@ const USER_AGENT = 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/13
 export const ddgSearch = async (query: string): Promise<string> => {
   const cacheKey = 'ddg:' + query
 
-  const cached = await cache.get(cacheKey)
+  const cached = await cache.get<string>(cacheKey)
   if (cached) {
     return cached
   }

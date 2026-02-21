@@ -7,7 +7,7 @@ const CACHE_FILE = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '.c
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000 // 7 days
 
 type CacheEntry = {
-  data: any
+  data: unknown
   timestamp: number
 }
 
@@ -36,7 +36,7 @@ const saveCache = async () => {
   await writeFile(CACHE_FILE, JSON.stringify(store, null, 2))
 }
 
-export const get = async (key: string): Promise<any> => {
+export const get = async <T = unknown>(key: string): Promise<T | null> => {
   await loadCache()
 
   const entry = store[key]
@@ -51,10 +51,10 @@ export const get = async (key: string): Promise<any> => {
     return null
   }
 
-  return entry.data
+  return entry.data as T
 }
 
-export const set = async (key: string, data: any): Promise<void> => {
+export const set = async (key: string, data: unknown): Promise<void> => {
   await loadCache()
 
   store[key] = {

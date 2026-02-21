@@ -1,20 +1,21 @@
 import { tool } from '@opencode-ai/plugin'
+import type { BskySearchResult } from './utils/bsky-search.ts'
 import { bskySearch } from './utils/bsky-search.ts'
 import { ddgSearch } from './utils/ddg-search.ts'
+import type { SearchResult } from './utils/google-search.ts'
 import { googleSearch } from './utils/google-search.ts'
+import type { StandardSearchResult } from './utils/standard-search.ts'
 import { standardSearch } from './utils/standard-search.ts'
 
-const formatGoogleResults = (results: any): string => {
-  const request = results.queries && results.queries.request
-  const totalResults = request && request[0] && request[0].totalResults
+const formatGoogleResults = (results: SearchResult): string => {
+  const request = results.queries.request
+  const totalResults = request && request[0] ? request[0].totalResults : '0'
 
-  const items = results.items
-    ? results.items.map((item: any) => ({
-      title: item.title,
-      link: item.link,
-      snippet: item.snippet,
-    }))
-    : []
+  const items = results.items.map((item) => ({
+    title: item.title,
+    link: item.link,
+    snippet: item.snippet,
+  }))
 
   return JSON.stringify(
     {
@@ -27,11 +28,45 @@ const formatGoogleResults = (results: any): string => {
   )
 }
 
-const formatDdgResults = (textContent: string) => {
+const formatDdgResults = (textContent: string): string => {
   return JSON.stringify(
     {
       source: 'duckduckgo',
       textContent,
+    },
+    null,
+    2,
+  )
+}
+
+const formatBskyResults = (results: BskySearchResult): string => {
+  const posts = results.posts.map((post) => ({
+    author: post.author.handle,
+    text: post.record.text,
+    createdAt: post.record.createdAt,
+    likes: post.likeCount,
+    reposts: post.repostCount,
+    replies: post.replyCount,
+    uri: post.uri,
+  }))
+
+  return JSON.stringify(
+    {
+      source: 'bluesky',
+      hitsTotal: results.hitsTotal,
+      posts,
+    },
+    null,
+    2,
+  )
+}
+
+const formatStandardResults = (results: StandardSearchResult): string => {
+  return JSON.stringify(
+    {
+      source: 'standard.site',
+      totalResults: results.totalResults,
+      documents: results.documents,
     },
     null,
     2,
@@ -90,42 +125,6 @@ export const ddgSearchTool = tool({
     return formatDdgResults(textContent)
   },
 })
-
-const formatBskyResults = (results: any): string => {
-  const posts = results.posts
-    ? results.posts.map((post: any) => ({
-      author: post.author.handle,
-      text: post.record.text,
-      createdAt: post.record.createdAt,
-      likes: post.likeCount,
-      reposts: post.repostCount,
-      replies: post.replyCount,
-      uri: post.uri,
-    }))
-    : []
-
-  return JSON.stringify(
-    {
-      source: 'bluesky',
-      hitsTotal: results.hitsTotal,
-      posts,
-    },
-    null,
-    2,
-  )
-}
-
-const formatStandardResults = (results: any): string => {
-  return JSON.stringify(
-    {
-      source: 'standard.site',
-      totalResults: results.totalResults,
-      documents: results.documents,
-    },
-    null,
-    2,
-  )
-}
 
 export const bskySearchTool = tool({
   description: 'Search Bluesky posts via the AT Protocol. Returns posts with author, text, and engagement counts.',

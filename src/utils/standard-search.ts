@@ -17,34 +17,34 @@ export type StandardSearchResult = {
 
 const parseDocument = (el: Element): StandardDocument | null => {
   const titleEl = el.querySelector('.result-title a')
-  const urlEl = el.querySelector('.result-url')
-  const snippetEl = el.querySelector('.result-snippet')
-
-  const title = titleEl ? titleEl.textContent : ''
-  if (!title) {
+  if (!titleEl || !titleEl.textContent) {
     return null
   }
 
-  const href = titleEl ? titleEl.getAttribute('href') : ''
-  const urlText = urlEl ? urlEl.textContent : ''
-  const snippet = snippetEl ? snippetEl.textContent : ''
+  const title = titleEl.textContent.trim()
+  const href = titleEl.getAttribute('href')
 
-  // URL line format: "https://example.com · 17 Feb 2026 · 🦋 Bluesky"
-  const parts = urlText ? urlText.split(' \u00B7 ') : []
-  const date = parts.length > 1 ? parts[1].trim() : ''
+  const urlEl = el.querySelector('.result-url')
+  const urlText = urlEl && urlEl.textContent ? urlEl.textContent : ''
+
+  const snippetEl = el.querySelector('.result-snippet')
+  const snippet = snippetEl && snippetEl.textContent ? snippetEl.textContent : ''
+
+  const parts = urlText.split(' \u00B7 ')
+  const datePart = parts.length > 1 ? parts[1] : ''
 
   return {
-    title: title.trim(),
+    title,
     url: href ? href.trim() : '',
-    date,
-    snippet: snippet ? snippet.trim() : '',
+    date: datePart ? datePart.trim() : '',
+    snippet: snippet.trim(),
   }
 }
 
 export const standardSearch = async (query: string): Promise<StandardSearchResult> => {
   const cacheKey = 'standard:' + query
 
-  const cached = await cache.get(cacheKey)
+  const cached = await cache.get<StandardSearchResult>(cacheKey)
   if (cached && cached.documents && cached.documents.length > 0) {
     return cached
   }
@@ -65,13 +65,19 @@ export const standardSearch = async (query: string): Promise<StandardSearchResul
   const doc = dom.window.document
 
   const countEl = doc.querySelector('.result-count')
-  const totalResults = countEl ? countEl.textContent || '0' : '0'
+  const countText = countEl ? countEl.textContent : ''
+  const totalResults = countText ? countText.trim() : '0'
 
   const elements = doc.querySelectorAll('.result')
   const documents: Array<StandardDocument> = []
 
   for (let i = 0; i < elements.length; i++) {
-    const parsed = parseDocument(elements[i])
+    const el = elements[i]
+    if (!el) {
+      continue
+    }
+
+    const parsed = parseDocument(el)
     if (parsed) {
       documents.push(parsed)
     }
@@ -83,7 +89,7 @@ export const standardSearch = async (query: string): Promise<StandardSearchResul
 
   const result: StandardSearchResult = {
     documents,
-    totalResults: totalResults.trim(),
+    totalResults,
   }
 
   await cache.set(cacheKey, result)

@@ -37,9 +37,9 @@ type BskySearchOptions = {
 
 export const bskySearch = async (options: BskySearchOptions): Promise<BskySearchResult> => {
   const { query, sort, limit } = options
-  const cacheKey = 'bsky:' + query + ':' + (sort || 'latest') + ':' + (limit || 25)
+  const cacheKey = 'bsky:' + query + ':' + (sort ?? 'latest') + ':' + (limit ?? 25)
 
-  const cached = await cache.get(cacheKey)
+  const cached = await cache.get<BskySearchResult>(cacheKey)
   if (cached && cached.posts && cached.posts.length > 0) {
     return cached
   }

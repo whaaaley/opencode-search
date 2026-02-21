@@ -18,8 +18,15 @@ export const parseResults = (doc: Document): string => {
     const href = link.getAttribute('href')
 
     lines.push(title.trim())
-    if (href) lines.push(href.trim())
-    if (snippet && snippet.textContent) lines.push(snippet.textContent.trim())
+
+    if (href) {
+      lines.push(href.trim())
+    }
+
+    if (snippet && snippet.textContent) {
+      lines.push(snippet.textContent.trim())
+    }
+
     lines.push('')
   }
 
