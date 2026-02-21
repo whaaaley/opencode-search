@@ -40,22 +40,14 @@ export const googleSearch = async (query: string): Promise<SearchResult> => {
     q: query,
   })
 
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-
-  const json = await res.json()
+  const res = await fetch(url)
 
   if (!res.ok) {
-    const errorMessage = json.error?.message || 'Unknown error'
-    const errorCode = json.error?.code || res.status
-    throw new Error(
-      ['Google Search API error (', errorCode, '): ', errorMessage].join(''),
-    )
+    const text = await res.text()
+    throw new Error('Google Search API error (' + res.status + '): ' + text)
   }
+
+  const json = await res.json()
 
   if (!json.items || json.items.length === 0) {
     throw new Error('Google Search returned no results for: ' + query)
@@ -67,9 +59,7 @@ export const googleSearch = async (query: string): Promise<SearchResult> => {
   })
 
   if (filtered.length === 0) {
-    throw new Error(
-      'Google Search returned results but all were from blocked domains for: ' + query,
-    )
+    throw new Error('Google Search returned results but all were from blocked domains for: ' + query)
   }
 
   const result: SearchResult = { ...json, items: filtered }
