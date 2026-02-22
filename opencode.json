@@ -1,7 +1,11 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "theme": "opencode",
-  "plugin": ["opencode-search@0.0.4-next.1", "opencode-irf@0.0.11", "@tarquinen/opencode-dcp@latest"],
+  "plugin": [
+    "opencode-search@0.0.4-next.2",
+    "opencode-irf@0.0.11",
+    "@tarquinen/opencode-dcp@latest"
+  ],
   "permission": {
     "bash": {
       "*": "ask"
