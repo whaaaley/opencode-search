@@ -4,9 +4,10 @@ import { formatResults } from './format.ts'
 import { sendResult } from './opencode/notify.ts'
 import { bskySearch } from './providers/bsky-search.ts'
 import { ddgSearch } from './providers/ddg-search.ts'
+import { mdnSearch } from './providers/mdn-search.ts'
 import { standardSearch } from './providers/standard-search.ts'
 import { wikiSearch } from './providers/wiki-search.ts'
-import { renderBskyPost, renderDdgText, renderStandardDoc, renderWikiPage } from './renderers.ts'
+import { renderBskyPost, renderDdgText, renderMdnDoc, renderStandardDoc, renderWikiPage } from './renderers.ts'
 import { safeAsync } from './utils/safe.ts'
 
 type Client = PluginInput['client']
@@ -152,6 +153,42 @@ export const createWikiSearchTool = (client: Client) => {
         limit: args.limit,
         offset: 0,
         renderItem: renderWikiPage,
+      })
+
+      postResult(client, ctx, formatted)
+
+      return formatted
+    },
+  })
+}
+
+export const createMdnSearchTool = (client: Client) => {
+  return tool({
+    description: 'Search MDN Web Docs. Returns documentation pages for web technologies.',
+    args: {
+      query: tool.schema.string().describe('The search query'),
+      limit: tool.schema.number().optional().describe('Maximum number of results to return'),
+      page: tool.schema.number().optional().describe('Page number for pagination'),
+    },
+    async execute(args, ctx) {
+      const result = await safeAsync(() => (
+        mdnSearch({
+          query: args.query,
+          limit: args.limit,
+          page: args.page,
+        })
+      ))
+
+      if (result.error) {
+        return 'MDN search failed: ' + result.error.message
+      }
+
+      const formatted = formatResults({
+        label: 'MDN Web Docs results',
+        items: result.data.documents,
+        total: result.data.total,
+        limit: args.limit,
+        renderItem: renderMdnDoc,
       })
 
       postResult(client, ctx, formatted)

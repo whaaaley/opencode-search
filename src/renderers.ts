@@ -1,5 +1,6 @@
 import { formatDate } from './format.ts'
 import type { BskySearchResult } from './providers/bsky-search.ts'
+import type { MdnSearchResult } from './providers/mdn-search.ts'
 import type { StandardSearchResult } from './providers/standard-search.ts'
 import type { WikiSearchResult } from './providers/wiki-search.ts'
 import { normalizeBlurb } from './utils/normalize-blurb.ts'
@@ -8,6 +9,7 @@ export const renderDdgText = (text: string): string => text
 
 type BskyPost = BskySearchResult['posts'][number]
 type StandardDocument = StandardSearchResult['documents'][number]
+type MdnDocument = MdnSearchResult['documents'][number]
 type WikiPage = WikiSearchResult['pages'][number]
 
 export const renderBskyPost = (post: BskyPost, index: number): string => (
@@ -30,4 +32,10 @@ export const renderWikiPage = (page: WikiPage, index: number): string => {
   return `${index + 1}. ${page.title}
    https://en.wikipedia.org/wiki/${page.key}${desc}
    ${normalizeBlurb(page.excerpt)}`
+}
+
+export const renderMdnDoc = (doc: MdnDocument, index: number): string => {
+  return `${index + 1}. ${doc.title}
+   https://developer.mozilla.org${doc.mdn_url}
+   ${normalizeBlurb(doc.summary)}`
 }

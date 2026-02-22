@@ -2,6 +2,7 @@ import type { Plugin } from '@opencode-ai/plugin'
 import {
   createBskySearchTool,
   createDdgSearchTool,
+  createMdnSearchTool,
   createStandardSearchTool,
   createWikiSearchTool,
 } from './src/search.ts'
@@ -15,6 +16,7 @@ const plugin: Plugin = async (ctx) => {
       'bsky-search': createBskySearchTool(client),
       'standard-search': createStandardSearchTool(client),
       'wiki-search': createWikiSearchTool(client),
+      'mdn-search': createMdnSearchTool(client),
     },
   }
 }

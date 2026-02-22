@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { renderBskyPost, renderDdgText, renderStandardDoc, renderWikiPage } from './renderers.ts'
+import { renderBskyPost, renderDdgText, renderMdnDoc, renderStandardDoc, renderWikiPage } from './renderers.ts'
 
 describe('renderDdgText', () => {
   it('returns the text as-is', () => {
@@ -217,5 +217,47 @@ describe('renderWikiPage', () => {
     for (let i = 1; i < lines.length; i++) {
       expect(lines[i]).toStartWith('   ')
     }
+  })
+})
+
+describe('renderMdnDoc', () => {
+  const doc = {
+    mdn_url: '/en-US/docs/Web/API/Fetch_API',
+    title: 'Fetch API',
+    summary: 'The Fetch API provides an interface for fetching resources.',
+    slug: 'Web/API/Fetch_API',
+    locale: 'en-US',
+    popularity: 0.5,
+  }
+
+  it('returns three lines: title, url, summary', () => {
+    const lines = renderMdnDoc(doc, 0).split('\n')
+    expect(lines).toHaveLength(3)
+  })
+
+  it('includes index and title on first line', () => {
+    const lines = renderMdnDoc(doc, 0).split('\n')
+    expect(lines[0]).toBe('1. Fetch API')
+  })
+
+  it('uses 1-based index', () => {
+    const lines = renderMdnDoc(doc, 4).split('\n')
+    expect(lines[0]).toStartWith('5. ')
+  })
+
+  it('includes full MDN url on second line', () => {
+    const lines = renderMdnDoc(doc, 0).split('\n')
+    expect(lines[1]).toContain('https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API')
+  })
+
+  it('includes summary on third line', () => {
+    const lines = renderMdnDoc(doc, 0).split('\n')
+    expect(lines[2]).toContain('The Fetch API provides an interface for fetching resources.')
+  })
+
+  it('indents url and summary lines', () => {
+    const lines = renderMdnDoc(doc, 0).split('\n')
+    expect(lines[1]).toStartWith('   ')
+    expect(lines[2]).toStartWith('   ')
   })
 })
