@@ -1,6 +1,6 @@
 # opencode-search
 
-An [OpenCode](https://opencode.ai) plugin that gives your agent access to DuckDuckGo, Wikipedia, Bluesky, and [standard.site](https://standard.site).
+An [OpenCode](https://opencode.ai) plugin that gives your agent access to DuckDuckGo, Wikipedia, Bluesky, [standard.site](https://standard.site), and MDN Web Docs.
 
 ## Quick Start
 
@@ -56,6 +56,16 @@ Search Wikipedia articles using the MediaWiki REST API. Returns structured resul
 | --------- | ------ | -------- | ---------------------------------- |
 | `query`   | string | yes      |                                    |
 | `limit`   | number | no       | Number of results (1-100)          |
+
+### mdn-search
+
+Search MDN Web Docs. Returns documentation pages for web technologies with title, URL, and summary. No API key required.
+
+| Parameter | Type   | Required | Description                        |
+| --------- | ------ | -------- | ---------------------------------- |
+| `query`   | string | yes      |                                    |
+| `limit`   | number | no       | Number of results to return        |
+| `page`    | number | no       | Page number for pagination         |
 
 ## Why not Google?
 
