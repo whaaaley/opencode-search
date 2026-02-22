@@ -2,6 +2,8 @@
 
 An [OpenCode](https://opencode.ai) plugin that gives your agent access to DuckDuckGo, Wikipedia, Bluesky, [standard.site](https://standard.site), and MDN Web Docs.
 
+<img width="786" height="377" alt="image" src="https://github.com/user-attachments/assets/9ad19ade-402a-4cc1-9882-a33d2a8e4d42" />
+
 ## Quick Start
 
 Add to your `opencode.json`:
