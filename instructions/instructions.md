@@ -60,3 +60,12 @@ Reason: To build momentum and reduce list size quickly before tackling complex i
 
 Rule: Do not delegate work to subagents or use the explore/task tool. Do all work directly in the main conversation.
 Reason: To keep all context visible and avoid losing information to subagent boundaries.
+
+Rule: Avoid the void operator for discarding promise return values.
+Reason: Fire-and-forget async calls work fine without it.
+
+Rule: When an arrow function's implicit return spans multiple lines, wrap the expression in parentheses.
+Reason: To clarify that the multi-line expression is an implicit return and improve readability.
+
+Rule: When a closing brace or closing parenthesis ends a statement, insert a blank line before the next statement begins (e.g., const, let, if, for, while, switch, return, or a function call).
+Reason: To visually separate statement blocks and improve readability.
