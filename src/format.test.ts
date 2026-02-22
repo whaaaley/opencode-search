@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import {
-  formatDate,
-  formatHeader,
-  formatResults,
-} from './format.ts'
+import { formatDate, formatHeader, formatResults } from './format.ts'
 
 describe('formatHeader', () => {
   it('formats basic header with defaults', () => {
@@ -121,4 +117,3 @@ describe('formatResults', () => {
     expect(result).toBe('Empty (showing 1-0 of 0, page 1)')
   })
 })
-

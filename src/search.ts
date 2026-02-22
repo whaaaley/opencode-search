@@ -7,15 +7,18 @@ import { ddgSearch } from './providers/ddg-search.ts'
 import { standardSearch } from './providers/standard-search.ts'
 import { wikiSearch } from './providers/wiki-search.ts'
 import { renderBskyPost, renderDdgText, renderStandardDoc, renderWikiPage } from './renderers.ts'
+import { safeAsync } from './utils/safe.ts'
 
 type Client = PluginInput['client']
 
 const postResult = (client: Client, ctx: ToolContext, text: string): void => {
-  sendResult({
-    client,
-    sessionID: ctx.sessionID,
-    text,
-  }).catch(() => {})
+  safeAsync(() => (
+    sendResult({
+      client,
+      sessionID: ctx.sessionID,
+      text,
+    })
+  ))
 }
 
 export const createDdgSearchTool = (client: Client) => {
@@ -25,14 +28,20 @@ export const createDdgSearchTool = (client: Client) => {
       query: tool.schema.string().describe('The search query'),
     },
     async execute(args, ctx) {
-      const textContent = await ddgSearch(args.query)
+      const result = await safeAsync(() => ddgSearch(args.query))
+      if (result.error) {
+        return 'DuckDuckGo search failed: ' + result.error.message
+      }
+
       const formatted = formatResults({
         label: 'DuckDuckGo results',
-        items: [textContent],
+        items: [result.data],
         total: 1,
         renderItem: renderDdgText,
       })
+
       postResult(client, ctx, formatted)
+
       return formatted
     },
   })
@@ -40,25 +49,37 @@ export const createDdgSearchTool = (client: Client) => {
 
 export const createBskySearchTool = (client: Client) => {
   return tool({
-    description: 'Search Bluesky posts via the AT Protocol. Returns posts with author, text, and engagement counts.',
+    description: [
+      'Search Bluesky posts via the AT Protocol.',
+      'Returns posts with author, text, and engagement counts.',
+    ].join(''),
     args: {
       query: tool.schema.string().describe('The search query'),
       limit: tool.schema.number().optional().describe('Maximum number of results to return'),
     },
     async execute(args, ctx) {
-      const results = await bskySearch({
-        query: args.query,
-        limit: args.limit,
-      })
+      const result = await safeAsync(() => (
+        bskySearch({
+          query: args.query,
+          limit: args.limit,
+        })
+      ))
+
+      if (result.error) {
+        return 'Bluesky search failed: ' + result.error.message
+      }
+
       const formatted = formatResults({
         label: 'Bluesky results',
-        items: results.posts,
-        total: results.hitsTotal,
+        items: result.data.posts,
+        total: result.data.hitsTotal,
         limit: args.limit,
         offset: 0,
         renderItem: renderBskyPost,
       })
+
       postResult(client, ctx, formatted)
+
       return formatted
     },
   })
@@ -66,29 +87,40 @@ export const createBskySearchTool = (client: Client) => {
 
 export const createStandardSearchTool = (client: Client) => {
   return tool({
-    description:
-      'Search site.standard.document records on the AT Protocol. Returns blog posts and articles from the ATmosphere.',
+    description: [
+      'Search site.standard.document records on the AT Protocol.',
+      'Returns blog posts and articles from the ATmosphere.',
+    ].join(' '),
     args: {
       query: tool.schema.string().describe('The search query'),
       limit: tool.schema.number().optional().describe('Maximum number of results to return'),
       offset: tool.schema.number().optional().describe('Number of results to skip'),
     },
     async execute(args, ctx) {
-      const results = await standardSearch({
-        query: args.query,
-        limit: args.limit,
-        offset: args.offset,
-      })
-      const total = Number(results.totalResults) || results.documents.length
+      const result = await safeAsync(() => (
+        standardSearch({
+          query: args.query,
+          limit: args.limit,
+          offset: args.offset,
+        })
+      ))
+
+      if (result.error) {
+        return 'Standard.site search failed: ' + result.error.message
+      }
+
+      const total = Number(result.data.totalResults) || result.data.documents.length
       const formatted = formatResults({
         label: 'Standard.site results',
-        items: results.documents,
+        items: result.data.documents,
         total,
         limit: args.limit,
         offset: args.offset,
         renderItem: renderStandardDoc,
       })
+
       postResult(client, ctx, formatted)
+
       return formatted
     },
   })
@@ -102,19 +134,28 @@ export const createWikiSearchTool = (client: Client) => {
       limit: tool.schema.number().optional().describe('Maximum number of results to return (1-100)'),
     },
     async execute(args, ctx) {
-      const results = await wikiSearch({
-        query: args.query,
-        limit: args.limit,
-      })
+      const result = await safeAsync(() => (
+        wikiSearch({
+          query: args.query,
+          limit: args.limit,
+        })
+      ))
+
+      if (result.error) {
+        return 'Wikipedia search failed: ' + result.error.message
+      }
+
       const formatted = formatResults({
         label: 'Wikipedia results',
-        items: results.pages,
-        total: results.pages.length,
+        items: result.data.pages,
+        total: result.data.pages.length,
         limit: args.limit,
         offset: 0,
         renderItem: renderWikiPage,
       })
+
       postResult(client, ctx, formatted)
+
       return formatted
     },
   })

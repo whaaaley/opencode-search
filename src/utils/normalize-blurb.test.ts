@@ -37,11 +37,11 @@ describe('normalizeBlurb', () => {
   })
 
   it('collapses newlines and tabs', () => {
-    expect(normalizeBlurb("line one\nline two\ttab")).toBe('line one line two tab')
+    expect(normalizeBlurb('line one\nline two\ttab')).toBe('line one line two tab')
   })
 
   it('collapses carriage returns', () => {
-    expect(normalizeBlurb("hello\r\nworld")).toBe('hello world')
+    expect(normalizeBlurb('hello\r\nworld')).toBe('hello world')
   })
 
   it('trims leading and trailing whitespace', () => {

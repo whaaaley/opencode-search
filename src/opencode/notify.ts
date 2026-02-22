@@ -9,15 +9,13 @@ type SendResultOptions = {
 }
 
 export const sendResult = async (options: SendResultOptions): Promise<void> => {
-  const { client, sessionID, text } = options
-
-  await client.session.prompt({
-    path: { id: sessionID },
+  await options.client.session.prompt({
+    path: { id: options.sessionID },
     body: {
       noReply: true,
       parts: [{
         type: 'text',
-        text,
+        text: options.text,
         ignored: true,
       }],
     },

@@ -48,15 +48,14 @@ type StandardSearchOptions = {
 }
 
 export const standardSearch = async (options: StandardSearchOptions): Promise<StandardSearchResult> => {
-  const { query, limit, offset } = options
-  const cacheKey = ['standard', query, limit ?? 0, offset ?? 0].join(':')
+  const cacheKey = ['standard', options.query, options.limit ?? 0, options.offset ?? 0].join(':')
 
   const cached = await cache.get<StandardSearchResult>(cacheKey)
   if (cached && cached.documents && cached.documents.length > 0) {
     return cached
   }
 
-  const url = SEARCH_URL + '?q=' + encodeURIComponent(query)
+  const url = SEARCH_URL + '?q=' + encodeURIComponent(options.query)
   const res = await fetch(url)
 
   if (!res.ok) {
@@ -91,11 +90,11 @@ export const standardSearch = async (options: StandardSearchOptions): Promise<St
   }
 
   if (documents.length === 0) {
-    throw new Error('Standard Search returned no results for: ' + query)
+    throw new Error('Standard Search returned no results for: ' + options.query)
   }
 
-  const start = offset ?? 0
-  const end = limit ? start + limit : documents.length
+  const start = options.offset ?? 0
+  const end = options.limit ? start + options.limit : documents.length
   const sliced = documents.slice(start, end)
 
   const result: StandardSearchResult = {

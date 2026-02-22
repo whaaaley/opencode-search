@@ -7,6 +7,6 @@
     "quoteStyle": "preferSingle",
     "trailingCommas": "onlyMultiLine"
   },
-  "includes": ["search.ts", "src/**/*.ts", "!src/**/*.test.ts"],
+  "includes": ["search.ts", "src/**/*.ts"],
   "plugins": ["https://plugins.dprint.dev/typescript-0.95.4.wasm"]
 }

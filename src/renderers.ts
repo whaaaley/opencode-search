@@ -10,10 +10,11 @@ type BskyPost = BskySearchResult['posts'][number]
 type StandardDocument = StandardSearchResult['documents'][number]
 type WikiPage = WikiSearchResult['pages'][number]
 
-export const renderBskyPost = (post: BskyPost, index: number): string =>
+export const renderBskyPost = (post: BskyPost, index: number): string => (
   `${index + 1}. @${post.author.handle} (${formatDate(post.record.createdAt, true)})
    ${normalizeBlurb(post.record.text)}
    Likes: ${post.likeCount}  Reposts: ${post.repostCount}  Replies: ${post.replyCount}`
+)
 
 export const renderStandardDoc = (doc: StandardDocument, index: number): string => {
   const title = doc.date

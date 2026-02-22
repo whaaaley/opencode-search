@@ -7,10 +7,12 @@ type PaginationOptions = {
 
 export const formatHeader = (label: string, options: PaginationOptions): string => {
   const { total, count, limit, offset } = options
+
   const start = (offset ?? 0) + 1
   const end = (offset ?? 0) + count
   const pageSize = limit ?? count
   const page = pageSize > 0 ? Math.floor((offset ?? 0) / pageSize) + 1 : 1
+
   return label + ' (showing ' + start + '-' + end + ' of ' + total + ', page ' + page + ')'
 }
 
