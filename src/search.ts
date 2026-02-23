@@ -8,18 +8,12 @@ import { mdnSearch } from './providers/mdn-search.ts'
 import { standardSearch } from './providers/standard-search.ts'
 import { wikiSearch } from './providers/wiki-search.ts'
 import { renderBskyPost, renderDdgText, renderMdnDoc, renderStandardDoc, renderWikiPage } from './renderers.ts'
-import { safeAsync } from './utils/safe.ts'
+import { safeAsync } from './safe.ts'
 
 type Client = PluginInput['client']
 
-const postResult = (client: Client, ctx: ToolContext, text: string): void => {
-  safeAsync(() => (
-    sendResult({
-      client,
-      sessionID: ctx.sessionID,
-      text,
-    })
-  ))
+const postResult = async (client: Client, ctx: ToolContext, text: string) => {
+  await safeAsync(() => sendResult({ client, sessionID: ctx.sessionID, text }))
 }
 
 export const createDdgSearchTool = (client: Client) => {
@@ -29,21 +23,21 @@ export const createDdgSearchTool = (client: Client) => {
       query: tool.schema.string().describe('The search query'),
     },
     async execute(args, ctx) {
-      const result = await safeAsync(() => ddgSearch(args.query))
-      if (result.error) {
-        return 'DuckDuckGo search failed: ' + result.error.message
+      const { data, error } = await safeAsync(() => ddgSearch(args.query))
+      if (error) {
+        return 'DuckDuckGo search failed: ' + error.message
       }
 
       const formatted = formatResults({
         label: 'DuckDuckGo results',
-        items: [result.data],
+        items: [data],
         total: 1,
         renderItem: renderDdgText,
       })
 
-      postResult(client, ctx, formatted)
+      await postResult(client, ctx, formatted)
 
-      return formatted
+      return 'Search results displayed in chat.'
     },
   })
 }
@@ -53,35 +47,32 @@ export const createBskySearchTool = (client: Client) => {
     description: [
       'Search Bluesky posts via the AT Protocol.',
       'Returns posts with author, text, and engagement counts.',
-    ].join(''),
+    ].join(' '),
     args: {
       query: tool.schema.string().describe('The search query'),
       limit: tool.schema.number().optional().describe('Maximum number of results to return'),
     },
     async execute(args, ctx) {
-      const result = await safeAsync(() => (
-        bskySearch({
-          query: args.query,
-          limit: args.limit,
-        })
+      const { data, error } = await safeAsync(() => (
+        bskySearch({ query: args.query, limit: args.limit })
       ))
 
-      if (result.error) {
-        return 'Bluesky search failed: ' + result.error.message
+      if (error) {
+        return 'Bluesky search failed: ' + error.message
       }
 
       const formatted = formatResults({
         label: 'Bluesky results',
-        items: result.data.posts,
-        total: result.data.hitsTotal,
+        items: data.posts,
+        total: data.hitsTotal,
         limit: args.limit,
         offset: 0,
         renderItem: renderBskyPost,
       })
 
-      postResult(client, ctx, formatted)
+      await postResult(client, ctx, formatted)
 
-      return formatted
+      return 'Search results displayed in chat.'
     },
   })
 }
@@ -98,31 +89,27 @@ export const createStandardSearchTool = (client: Client) => {
       offset: tool.schema.number().optional().describe('Number of results to skip'),
     },
     async execute(args, ctx) {
-      const result = await safeAsync(() => (
-        standardSearch({
-          query: args.query,
-          limit: args.limit,
-          offset: args.offset,
-        })
+      const { data, error } = await safeAsync(() => (
+        standardSearch({ query: args.query, limit: args.limit, offset: args.offset })
       ))
 
-      if (result.error) {
-        return 'Standard.site search failed: ' + result.error.message
+      if (error) {
+        return 'Standard.site search failed: ' + error.message
       }
 
-      const total = Number(result.data.totalResults) || result.data.documents.length
+      const total = Number(data.totalResults) || data.documents.length
       const formatted = formatResults({
         label: 'Standard.site results',
-        items: result.data.documents,
+        items: data.documents,
         total,
         limit: args.limit,
         offset: args.offset,
         renderItem: renderStandardDoc,
       })
 
-      postResult(client, ctx, formatted)
+      await postResult(client, ctx, formatted)
 
-      return formatted
+      return 'Search results displayed in chat.'
     },
   })
 }
@@ -135,29 +122,26 @@ export const createWikiSearchTool = (client: Client) => {
       limit: tool.schema.number().optional().describe('Maximum number of results to return (1-100)'),
     },
     async execute(args, ctx) {
-      const result = await safeAsync(() => (
-        wikiSearch({
-          query: args.query,
-          limit: args.limit,
-        })
+      const { data, error } = await safeAsync(() => (
+        wikiSearch({ query: args.query, limit: args.limit })
       ))
 
-      if (result.error) {
-        return 'Wikipedia search failed: ' + result.error.message
+      if (error) {
+        return 'Wikipedia search failed: ' + error.message
       }
 
       const formatted = formatResults({
         label: 'Wikipedia results',
-        items: result.data.pages,
-        total: result.data.pages.length,
+        items: data.pages,
+        total: data.pages.length,
         limit: args.limit,
         offset: 0,
         renderItem: renderWikiPage,
       })
 
-      postResult(client, ctx, formatted)
+      await postResult(client, ctx, formatted)
 
-      return formatted
+      return 'Search results displayed in chat.'
     },
   })
 }
@@ -171,29 +155,25 @@ export const createMdnSearchTool = (client: Client) => {
       page: tool.schema.number().optional().describe('Page number for pagination'),
     },
     async execute(args, ctx) {
-      const result = await safeAsync(() => (
-        mdnSearch({
-          query: args.query,
-          limit: args.limit,
-          page: args.page,
-        })
+      const { data, error } = await safeAsync(() => (
+        mdnSearch({ query: args.query, limit: args.limit, page: args.page })
       ))
 
-      if (result.error) {
-        return 'MDN search failed: ' + result.error.message
+      if (error) {
+        return 'MDN search failed: ' + error.message
       }
 
       const formatted = formatResults({
         label: 'MDN Web Docs results',
-        items: result.data.documents,
-        total: result.data.total,
+        items: data.documents,
+        total: data.total,
         limit: args.limit,
         renderItem: renderMdnDoc,
       })
 
-      postResult(client, ctx, formatted)
+      await postResult(client, ctx, formatted)
 
-      return formatted
+      return 'Search results displayed in chat.'
     },
   })
 }
