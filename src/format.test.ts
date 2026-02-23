@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { formatDate, formatHeader, formatResults } from './format.ts'
+import { formatDate, formatDateTime, formatHeader, formatResults } from './format.ts'
 
 describe('formatHeader', () => {
   it('formats basic header with defaults', () => {
@@ -50,16 +50,72 @@ describe('formatDate', () => {
   it('returns raw string for invalid date', () => {
     expect(formatDate('not-a-date')).toBe('not-a-date')
   })
+})
 
-  it('includes time when time flag is true', () => {
-    const result = formatDate('2025-01-01T03:05:00.000Z', true)
+describe('formatDateTime', () => {
+  it('includes time', () => {
+    const result = formatDateTime('2025-01-01T03:05:00.000Z')
     expect(result).toMatch(/AM|PM/)
     expect(result).toMatch(/:05/)
   })
 
-  it('excludes time when time flag is false', () => {
-    const result = formatDate('2025-01-01T12:05:00.000Z', false)
-    expect(result).not.toContain(':')
+  it('returns raw string for invalid date', () => {
+    expect(formatDateTime('not-a-date')).toBe('not-a-date')
+  })
+})
+
+describe('formatResults', () => {
+  it('renders header and items using renderItem callback', () => {
+    const result = formatResults({
+      label: 'Test',
+      items: ['a', 'b'],
+      total: 2,
+      renderItem: (item, i) => `${i + 1}. ${item}`,
+    })
+    expect(result).toBe([
+      'Test (showing 1-2 of 2, page 1)',
+      '',
+      '1. a',
+      '',
+      '2. b',
+    ].join('\n'))
+  })
+
+  it('supports multi-line renderItem output', () => {
+    const result = formatResults({
+      label: 'Multi',
+      items: [{ title: 'Foo', url: 'https://foo.com' }],
+      total: 1,
+      renderItem: (item) => `${item.title}\n   ${item.url}`,
+    })
+    expect(result).toBe([
+      'Multi (showing 1-1 of 1, page 1)',
+      '',
+      'Foo',
+      '   https://foo.com',
+    ].join('\n'))
+  })
+
+  it('passes limit and offset to header', () => {
+    const result = formatResults({
+      label: 'Paged',
+      items: ['x'],
+      total: 30,
+      limit: 10,
+      offset: 10,
+      renderItem: (item) => item,
+    })
+    expect(result).toContain('showing 11-11 of 30, page 2')
+  })
+
+  it('handles empty items array', () => {
+    const result = formatResults({
+      label: 'Empty',
+      items: [],
+      total: 0,
+      renderItem: () => 'should not appear',
+    })
+    expect(result).toBe('Empty (0 results)')
   })
 })
 

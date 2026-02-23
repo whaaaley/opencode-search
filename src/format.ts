@@ -6,36 +6,48 @@ type PaginationOptions = {
 }
 
 export const formatHeader = (label: string, options: PaginationOptions): string => {
-  const { total, count, limit, offset } = options
+  const { total, count, limit } = options
+  const offset = options.offset ?? 0
 
   if (count === 0) {
     return label + ' (0 results)'
   }
 
-  const start = (offset ?? 0) + 1
-  const end = (offset ?? 0) + count
+  const start = offset + 1
+  const end = offset + count
   const pageSize = limit ?? count
-  const page = pageSize > 0 ? Math.floor((offset ?? 0) / pageSize) + 1 : 1
+  const page = pageSize > 0 ? Math.floor(offset / pageSize) + 1 : 1
 
   return label + ' (showing ' + start + '-' + end + ' of ' + total + ', page ' + page + ')'
 }
 
-export const formatDate = (raw: string, time?: boolean): string => {
+const DATE_FMT: Intl.DateTimeFormatOptions = {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+}
+
+const DATETIME_FMT: Intl.DateTimeFormatOptions = {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+}
+
+const parseDate = (raw: string): Date | null => {
   const d = new Date(raw)
+  return isNaN(d.getTime()) ? null : d
+}
 
-  if (isNaN(d.getTime())) {
-    return raw
-  }
+export const formatDate = (raw: string): string => {
+  const d = parseDate(raw)
+  return d ? d.toLocaleString('en-US', DATE_FMT) : raw
+}
 
-  const fmt: Intl.DateTimeFormatOptions = {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: time ? 'numeric' : undefined,
-    minute: time ? '2-digit' : undefined,
-  }
-
-  return d.toLocaleString('en-US', fmt)
+export const formatDateTime = (raw: string): string => {
+  const d = parseDate(raw)
+  return d ? d.toLocaleString('en-US', DATETIME_FMT) : raw
 }
 
 type FormatResultsOptions<T> = {
@@ -48,19 +60,16 @@ type FormatResultsOptions<T> = {
 }
 
 export const formatResults = <T>(options: FormatResultsOptions<T>): string => {
-  const header = formatHeader(options.label, {
-    total: options.total,
-    count: options.items.length,
-    limit: options.limit,
-    offset: options.offset,
-  })
+  const { label, items, total, limit, offset, renderItem } = options
 
-  if (options.items.length === 0) {
+  const header = formatHeader(label, { total, count: items.length, limit, offset })
+
+  if (items.length === 0) {
     return header
   }
 
-  const body = options.items
-    .map((item, i) => options.renderItem(item, i))
+  const body = items
+    .map((item, i) => renderItem(item, i))
     .join('\n\n')
 
   return header + '\n\n' + body

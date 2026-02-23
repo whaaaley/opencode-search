@@ -1,4 +1,4 @@
-import { formatDate } from './format.ts'
+import { formatDate, formatDateTime } from './format.ts'
 import { normalizeBlurb } from './normalize-blurb.ts'
 import type { BskyPost } from './providers/bsky-search.ts'
 import type { MdnDocument } from './providers/mdn-search.ts'
@@ -8,7 +8,7 @@ import type { WikiPage } from './providers/wiki-search.ts'
 export const renderDdgText = (text: string): string => text
 
 export const renderBskyPost = (post: BskyPost, index: number): string => (
-  `${index + 1}. @${post.author.handle} (${formatDate(post.record.createdAt, true)})
+  `${index + 1}. @${post.author.handle} (${formatDateTime(post.record.createdAt)})
    ${normalizeBlurb(post.record.text)}
    Likes: ${post.likeCount}  Reposts: ${post.repostCount}  Replies: ${post.replyCount}`
 )
