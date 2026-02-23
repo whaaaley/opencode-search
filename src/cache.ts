@@ -1,6 +1,7 @@
-import { access, readFile, writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { safe, safeAsync } from './safe.ts'
 
 const CACHE_FILE = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '.cache')
 const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000 // 7 days
@@ -20,19 +21,11 @@ const loadCache = async () => {
     return
   }
 
-  try {
-    await access(CACHE_FILE)
-  } catch {
-    store = {}
-    loaded = true
-    return
-  }
+  const { data } = await safeAsync(() => readFile(CACHE_FILE, 'utf-8'))
 
-  try {
-    const content = await readFile(CACHE_FILE, 'utf-8')
-    store = JSON.parse(content)
-  } catch {
-    store = {}
+  if (data) {
+    const { data: parsed } = safe(() => JSON.parse(data) as CacheStore)
+    store = parsed ?? {}
   }
 
   loaded = true
