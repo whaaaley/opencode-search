@@ -8,6 +8,10 @@ type PaginationOptions = {
 export const formatHeader = (label: string, options: PaginationOptions): string => {
   const { total, count, limit, offset } = options
 
+  if (count === 0) {
+    return label + ' (0 results)'
+  }
+
   const start = (offset ?? 0) + 1
   const end = (offset ?? 0) + count
   const pageSize = limit ?? count

@@ -3,7 +3,7 @@ import type { BskySearchResult } from './providers/bsky-search.ts'
 import type { MdnSearchResult } from './providers/mdn-search.ts'
 import type { StandardSearchResult } from './providers/standard-search.ts'
 import type { WikiSearchResult } from './providers/wiki-search.ts'
-import { normalizeBlurb } from './utils/normalize-blurb.ts'
+import { normalizeBlurb } from './normalize-blurb.ts'
 
 export const renderDdgText = (text: string): string => text
 

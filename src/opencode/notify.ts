@@ -16,7 +16,6 @@ export const sendResult = async (options: SendResultOptions): Promise<void> => {
       parts: [{
         type: 'text',
         text: options.text,
-        ignored: true,
       }],
     },
   })

@@ -1,28 +1,36 @@
-import * as cache from '../utils/cache.ts'
-import { isArray, isNumber, isRecord, isString } from '../utils/guards.ts'
+import { z } from 'zod'
+import * as cache from '../cache.ts'
 
 const BSKY_API = 'https://api.bsky.app/xrpc/app.bsky.feed.searchPosts'
 
-type BskyAuthor = {
-  did: string
-  handle: string
-  displayName: string
-}
+const authorSchema = z.object({
+  did: z.string().default(''),
+  handle: z.string().min(1),
+  displayName: z.string().default(''),
+})
 
-type BskyRecord = {
-  text: string
-  createdAt: string
-}
+const recordSchema = z.object({
+  text: z.string().min(1),
+  createdAt: z.string().default(''),
+})
 
-type BskyPost = {
-  uri: string
-  cid: string
-  author: BskyAuthor
-  record: BskyRecord
-  likeCount: number
-  repostCount: number
-  replyCount: number
-}
+const postSchema = z.object({
+  uri: z.string().default(''),
+  cid: z.string().default(''),
+  author: authorSchema,
+  record: recordSchema,
+  likeCount: z.number().default(0),
+  repostCount: z.number().default(0),
+  replyCount: z.number().default(0),
+})
+
+const responseSchema = z.object({
+  posts: z.array(z.unknown()),
+  hitsTotal: z.number().optional(),
+  cursor: z.string().optional(),
+})
+
+type BskyPost = z.infer<typeof postSchema>
 
 export type BskySearchResult = {
   posts: Array<BskyPost>
@@ -34,66 +42,6 @@ type BskySearchOptions = {
   query: string
   sort?: string
   limit?: number
-}
-
-const parseAuthor = (raw: unknown): BskyAuthor | null => {
-  if (!isRecord(raw)) {
-    return null
-  }
-
-  const did = isString(raw.did) ? raw.did : ''
-  const handle = isString(raw.handle) ? raw.handle : ''
-  const displayName = isString(raw.displayName) ? raw.displayName : ''
-
-  if (!handle) {
-    return null
-  }
-
-  return { did, handle, displayName }
-}
-
-const parseRecord = (raw: unknown): BskyRecord | null => {
-  if (!isRecord(raw)) {
-    return null
-  }
-
-  const text = isString(raw.text) ? raw.text : ''
-  const createdAt = isString(raw.createdAt) ? raw.createdAt : ''
-
-  if (!text) {
-    return null
-  }
-
-  return { text, createdAt }
-}
-
-const parsePost = (raw: unknown): BskyPost | null => {
-  if (!isRecord(raw)) {
-    return null
-  }
-
-  const uri = isString(raw.uri) ? raw.uri : ''
-  const cid = isString(raw.cid) ? raw.cid : ''
-
-  const author = parseAuthor(raw.author)
-  if (!author) {
-    return null
-  }
-
-  const record = parseRecord(raw.record)
-  if (!record) {
-    return null
-  }
-
-  return {
-    uri,
-    cid,
-    author,
-    record,
-    likeCount: isNumber(raw.likeCount) ? raw.likeCount : 0,
-    repostCount: isNumber(raw.repostCount) ? raw.repostCount : 0,
-    replyCount: isNumber(raw.replyCount) ? raw.replyCount : 0,
-  }
 }
 
 export const bskySearch = async (options: BskySearchOptions): Promise<BskySearchResult> => {
@@ -128,28 +76,21 @@ export const bskySearch = async (options: BskySearchOptions): Promise<BskySearch
   }
 
   const json: unknown = await res.json()
+  const response = responseSchema.parse(json)
 
-  if (!isRecord(json) || !isArray(json.posts)) {
-    throw new Error('Bluesky returned an unexpected response shape')
-  }
+  const posts = response.posts.flatMap((raw) => {
+    const parsed = postSchema.safeParse(raw)
+    return parsed.success ? [parsed.data] : []
+  })
 
-  const posts: Array<BskyPost> = []
-  for (const raw of json.posts) {
-    const post = parsePost(raw)
-    if (post) {
-      posts.push(post)
-    }
-  }
-
-  if (posts.length === 0) {
-    throw new Error('Bluesky search returned no results for: ' + options.query)
-  }
-
-  const hitsTotal = isNumber(json.hitsTotal) ? json.hitsTotal : posts.length
-  const cursor = isString(json.cursor) ? json.cursor : ''
+  const hitsTotal = response.hitsTotal ?? posts.length
+  const cursor = response.cursor ?? ''
 
   const result: BskySearchResult = { posts, hitsTotal, cursor }
-  await cache.set(cacheKey, result)
+
+  if (posts.length > 0) {
+    await cache.set(cacheKey, result)
+  }
 
   return result
 }

@@ -1,5 +1,5 @@
 import { JSDOM, VirtualConsole } from 'jsdom'
-import * as cache from '../utils/cache.ts'
+import * as cache from '../cache.ts'
 
 const SEARCH_URL = 'https://standard-search.octet-stream.net/search'
 
@@ -89,10 +89,6 @@ export const standardSearch = async (options: StandardSearchOptions): Promise<St
     }
   }
 
-  if (documents.length === 0) {
-    throw new Error('Standard Search returned no results for: ' + options.query)
-  }
-
   const start = options.offset ?? 0
   const end = options.limit ? start + options.limit : documents.length
   const sliced = documents.slice(start, end)
@@ -102,7 +98,9 @@ export const standardSearch = async (options: StandardSearchOptions): Promise<St
     totalResults,
   }
 
-  await cache.set(cacheKey, result)
+  if (sliced.length > 0) {
+    await cache.set(cacheKey, result)
+  }
 
   return result
 }

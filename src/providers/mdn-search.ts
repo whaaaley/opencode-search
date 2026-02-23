@@ -1,17 +1,28 @@
-import * as cache from '../utils/cache.ts'
-import { isArray, isNumber, isRecord, isString } from '../utils/guards.ts'
-import { USER_AGENT } from '../utils/user-agent.ts'
+import { z } from 'zod'
+import * as cache from '../cache.ts'
+import { USER_AGENT } from '../user-agent.ts'
 
 const MDN_API = 'https://developer.mozilla.org/api/v1/search'
 
-type MdnDocument = {
-  mdn_url: string
-  title: string
-  summary: string
-  slug: string
-  locale: string
-  popularity: number
-}
+const documentSchema = z.object({
+  mdn_url: z.string().min(1),
+  title: z.string().min(1),
+  summary: z.string().default(''),
+  slug: z.string().default(''),
+  locale: z.string().default('en-US'),
+  popularity: z.number().default(0),
+})
+
+const responseSchema = z.object({
+  documents: z.array(z.unknown()),
+  metadata: z.object({
+    total: z.object({
+      value: z.number(),
+    }),
+  }).optional(),
+})
+
+type MdnDocument = z.infer<typeof documentSchema>
 
 export type MdnSearchResult = {
   documents: Array<MdnDocument>
@@ -22,32 +33,6 @@ type MdnSearchOptions = {
   query: string
   limit?: number
   page?: number
-}
-
-const parseDocument = (raw: unknown): MdnDocument | null => {
-  if (!isRecord(raw)) {
-    return null
-  }
-
-  const mdn_url = isString(raw.mdn_url) ? raw.mdn_url : ''
-  const title = isString(raw.title) ? raw.title : ''
-  const summary = isString(raw.summary) ? raw.summary : ''
-  const slug = isString(raw.slug) ? raw.slug : ''
-  const locale = isString(raw.locale) ? raw.locale : 'en-US'
-  const popularity = isNumber(raw.popularity) ? raw.popularity : 0
-
-  if (!mdn_url || !title) {
-    return null
-  }
-
-  return {
-    mdn_url,
-    title,
-    summary,
-    slug,
-    locale,
-    popularity,
-  }
 }
 
 export const mdnSearch = async (options: MdnSearchOptions): Promise<MdnSearchResult> => {
@@ -87,29 +72,20 @@ export const mdnSearch = async (options: MdnSearchOptions): Promise<MdnSearchRes
   }
 
   const json: unknown = await res.json()
+  const response = responseSchema.parse(json)
 
-  if (!isRecord(json) || !isArray(json.documents)) {
-    throw new Error('MDN returned an unexpected response shape')
-  }
+  const documents = response.documents.flatMap((raw) => {
+    const parsed = documentSchema.safeParse(raw)
+    return parsed.success ? [parsed.data] : []
+  })
 
-  const documents: Array<MdnDocument> = []
-  for (const raw of json.documents) {
-    const doc = parseDocument(raw)
-    if (doc) {
-      documents.push(doc)
-    }
-  }
-
-  if (documents.length === 0) {
-    throw new Error('MDN search returned no results for: ' + options.query)
-  }
-
-  const total = isRecord(json.metadata) && isRecord(json.metadata.total) && isNumber(json.metadata.total.value)
-    ? json.metadata.total.value
-    : documents.length
+  const total = response.metadata?.total.value ?? documents.length
 
   const result: MdnSearchResult = { documents, total }
-  await cache.set(cacheKey, result)
+
+  if (documents.length > 0) {
+    await cache.set(cacheKey, result)
+  }
 
   return result
 }

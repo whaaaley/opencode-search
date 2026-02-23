@@ -7,16 +7,14 @@ import {
   createWikiSearchTool,
 } from './src/search.ts'
 
-const plugin: Plugin = async (ctx) => {
-  const { client } = ctx
-
+const plugin: Plugin = async ({ client }) => {
   return {
     tool: {
-      'ddg-search': createDdgSearchTool(client),
       'bsky-search': createBskySearchTool(client),
+      'ddg-search': createDdgSearchTool(client),
+      'mdn-search': createMdnSearchTool(client),
       'standard-search': createStandardSearchTool(client),
       'wiki-search': createWikiSearchTool(client),
-      'mdn-search': createMdnSearchTool(client),
     },
   }
 }

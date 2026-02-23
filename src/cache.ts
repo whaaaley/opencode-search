@@ -1,5 +1,4 @@
-import { existsSync } from 'node:fs'
-import { readFile, writeFile } from 'node:fs/promises'
+import { access, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -21,14 +20,21 @@ const loadCache = async () => {
     return
   }
 
-  if (!existsSync(CACHE_FILE)) {
+  try {
+    await access(CACHE_FILE)
+  } catch {
     store = {}
     loaded = true
     return
   }
 
-  const content = await readFile(CACHE_FILE, 'utf-8')
-  store = JSON.parse(content)
+  try {
+    const content = await readFile(CACHE_FILE, 'utf-8')
+    store = JSON.parse(content)
+  } catch {
+    store = {}
+  }
+
   loaded = true
 }
 

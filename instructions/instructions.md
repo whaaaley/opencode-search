@@ -69,3 +69,6 @@ Reason: To clarify that the multi-line expression is an implicit return and impr
 
 Rule: When a closing brace or closing parenthesis ends a statement, insert a blank line before the next statement begins (e.g., const, let, if, for, while, switch, return, or a function call).
 Reason: To visually separate statement blocks and improve readability.
+
+Rule: When an if statement is a guard that checks the variable declared in the immediately preceding const/let, do not insert a blank line between the declaration and the if.
+Reason: The declaration and its guard check are logically coupled and should be visually grouped by touching.

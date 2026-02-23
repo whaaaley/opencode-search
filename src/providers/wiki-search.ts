@@ -1,24 +1,31 @@
-import * as cache from '../utils/cache.ts'
-import { isArray, isNumber, isRecord, isString } from '../utils/guards.ts'
-import { USER_AGENT } from '../utils/user-agent.ts'
+import { z } from 'zod'
+import * as cache from '../cache.ts'
+import { normalizeBlurb } from '../normalize-blurb.ts'
+import { USER_AGENT } from '../user-agent.ts'
 
 const WIKI_API = 'https://en.wikipedia.org/w/rest.php/v1/search/page'
 
-type WikiThumbnail = {
-  url: string
-  width: number
-  height: number
-}
+const thumbnailSchema = z.object({
+  url: z.string().min(1),
+  width: z.number(),
+  height: z.number(),
+})
 
-type WikiPage = {
-  id: number
-  key: string
-  title: string
-  excerpt: string
-  description: string | null
-  matched_title: string | null
-  thumbnail: WikiThumbnail | null
-}
+const pageSchema = z.object({
+  id: z.number().default(0),
+  key: z.string().min(1),
+  title: z.string().min(1),
+  excerpt: z.string().default('').transform(normalizeBlurb),
+  description: z.string().nullable().default(null),
+  matched_title: z.string().nullable().default(null),
+  thumbnail: thumbnailSchema.nullable().default(null),
+})
+
+const responseSchema = z.object({
+  pages: z.array(z.unknown()),
+})
+
+type WikiPage = z.infer<typeof pageSchema>
 
 export type WikiSearchResult = {
   pages: Array<WikiPage>
@@ -27,47 +34,6 @@ export type WikiSearchResult = {
 type WikiSearchOptions = {
   query: string
   limit?: number
-}
-
-const stripTags = (html: string): string => {
-  return html.replace(/<[^>]*>/g, '')
-}
-
-const parseThumbnail = (raw: unknown): WikiThumbnail | null => {
-  if (!isRecord(raw)) {
-    return null
-  }
-
-  if (!isString(raw.url) || !isNumber(raw.width) || !isNumber(raw.height)) {
-    return null
-  }
-
-  return { url: raw.url, width: raw.width, height: raw.height }
-}
-
-const parsePage = (raw: unknown): WikiPage | null => {
-  if (!isRecord(raw)) {
-    return null
-  }
-
-  const id = isNumber(raw.id) ? raw.id : 0
-  const key = isString(raw.key) ? raw.key : ''
-  const title = isString(raw.title) ? raw.title : ''
-  const excerpt = isString(raw.excerpt) ? stripTags(raw.excerpt) : ''
-
-  if (!key || !title) {
-    return null
-  }
-
-  return {
-    id,
-    key,
-    title,
-    excerpt,
-    description: isString(raw.description) ? raw.description : null,
-    matched_title: isString(raw.matched_title) ? raw.matched_title : null,
-    thumbnail: parseThumbnail(raw.thumbnail),
-  }
 }
 
 export const wikiSearch = async (options: WikiSearchOptions): Promise<WikiSearchResult> => {
@@ -95,25 +61,18 @@ export const wikiSearch = async (options: WikiSearchOptions): Promise<WikiSearch
   }
 
   const json: unknown = await res.json()
+  const response = responseSchema.parse(json)
 
-  if (!isRecord(json) || !isArray(json.pages)) {
-    throw new Error('Wikipedia returned an unexpected response shape')
-  }
-
-  const pages: Array<WikiPage> = []
-  for (const raw of json.pages) {
-    const page = parsePage(raw)
-    if (page) {
-      pages.push(page)
-    }
-  }
-
-  if (pages.length === 0) {
-    throw new Error('Wikipedia search returned no results for: ' + options.query)
-  }
+  const pages = response.pages.flatMap((raw) => {
+    const parsed = pageSchema.safeParse(raw)
+    return parsed.success ? [parsed.data] : []
+  })
 
   const result: WikiSearchResult = { pages }
-  await cache.set(cacheKey, result)
+
+  if (pages.length > 0) {
+    await cache.set(cacheKey, result)
+  }
 
   return result
 }

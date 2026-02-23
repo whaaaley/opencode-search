@@ -35,7 +35,7 @@ describe('formatHeader', () => {
       total: 0,
       count: 0,
     })
-    expect(result).toBe('Empty (showing 1-0 of 0, page 1)')
+    expect(result).toBe('Empty (0 results)')
   })
 })
 
@@ -114,6 +114,6 @@ describe('formatResults', () => {
       total: 0,
       renderItem: () => 'should not appear',
     })
-    expect(result).toBe('Empty (showing 1-0 of 0, page 1)')
+    expect(result).toBe('Empty (0 results)')
   })
 })

@@ -22,7 +22,7 @@
       "language_servers": ["typescript-language-server", "!vtsls", "!eslint"],
       "formatter": {
         "external": {
-          "command": "npx",
+          "command": "bun",
           "arguments": ["dprint", "fmt", "--stdin", "{buffer_path}"],
         },
       },
