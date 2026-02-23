@@ -1,16 +1,11 @@
 import { formatDate } from './format.ts'
-import type { BskySearchResult } from './providers/bsky-search.ts'
-import type { MdnSearchResult } from './providers/mdn-search.ts'
-import type { StandardSearchResult } from './providers/standard-search.ts'
-import type { WikiSearchResult } from './providers/wiki-search.ts'
 import { normalizeBlurb } from './normalize-blurb.ts'
+import type { BskyPost } from './providers/bsky-search.ts'
+import type { MdnDocument } from './providers/mdn-search.ts'
+import type { StandardDocument } from './providers/standard-search.ts'
+import type { WikiPage } from './providers/wiki-search.ts'
 
 export const renderDdgText = (text: string): string => text
-
-type BskyPost = BskySearchResult['posts'][number]
-type StandardDocument = StandardSearchResult['documents'][number]
-type MdnDocument = MdnSearchResult['documents'][number]
-type WikiPage = WikiSearchResult['pages'][number]
 
 export const renderBskyPost = (post: BskyPost, index: number): string => (
   `${index + 1}. @${post.author.handle} (${formatDate(post.record.createdAt, true)})

@@ -30,7 +30,7 @@ const responseSchema = z.object({
   cursor: z.string().optional(),
 })
 
-type BskyPost = z.infer<typeof postSchema>
+export type BskyPost = z.infer<typeof postSchema>
 
 export type BskySearchResult = {
   posts: Array<BskyPost>

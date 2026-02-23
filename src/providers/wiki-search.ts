@@ -25,7 +25,7 @@ const responseSchema = z.object({
   pages: z.array(z.unknown()),
 })
 
-type WikiPage = z.infer<typeof pageSchema>
+export type WikiPage = z.infer<typeof pageSchema>
 
 export type WikiSearchResult = {
   pages: Array<WikiPage>

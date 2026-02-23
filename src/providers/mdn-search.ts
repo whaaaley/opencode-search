@@ -22,7 +22,7 @@ const responseSchema = z.object({
   }).optional(),
 })
 
-type MdnDocument = z.infer<typeof documentSchema>
+export type MdnDocument = z.infer<typeof documentSchema>
 
 export type MdnSearchResult = {
   documents: Array<MdnDocument>

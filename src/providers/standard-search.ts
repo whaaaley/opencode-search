@@ -3,7 +3,7 @@ import * as cache from '../cache.ts'
 
 const SEARCH_URL = 'https://standard-search.octet-stream.net/search'
 
-type StandardDocument = {
+export type StandardDocument = {
   title: string
   url: string
   date: string
