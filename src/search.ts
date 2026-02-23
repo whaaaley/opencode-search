@@ -51,10 +51,11 @@ export const createBskySearchTool = (client: Client) => {
     args: {
       query: tool.schema.string().describe('The search query'),
       limit: tool.schema.number().optional().describe('Maximum number of results to return'),
+      sort: tool.schema.string().optional().describe('Sort order: top or latest'),
     },
     async execute(args, ctx) {
       const { data, error } = await safeAsync(() => (
-        bskySearch({ query: args.query, limit: args.limit })
+        bskySearch({ query: args.query, limit: args.limit, sort: args.sort })
       ))
 
       if (error) {
