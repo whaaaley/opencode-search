@@ -1,6 +1,6 @@
 {
   "name": "opencode-search",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "OpenCode plugin that provides web search tools using DuckDuckGo, Wikipedia, Bluesky, Standard.site, and MDN Web Docs.",
   "keywords": [
     "opencode",
