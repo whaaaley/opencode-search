@@ -1,6 +1,6 @@
 # opencode-search
 
-An [OpenCode](https://opencode.ai) plugin that gives your agent access to DuckDuckGo, Wikipedia, Bluesky, [standard.site](https://standard.site), and MDN Web Docs.
+An [OpenCode](https://opencode.ai) plugin that gives your agent access to DuckDuckGo, Google, Wikipedia, Bluesky, [standard.site](https://standard.site), and MDN Web Docs.
 
 <img width="786" height="377" alt="image" src="https://github.com/user-attachments/assets/9ad19ade-402a-4cc1-9882-a33d2a8e4d42" />
 
@@ -20,13 +20,25 @@ Restart OpenCode. The plugin will be installed automatically.
 
 ### ddg-search
 
-Search the web using DuckDuckGo. Returns a text summary of search results.
+Search the web using DuckDuckGo. Returns structured results with title, URL, and snippet.
 
 | Parameter | Type   | Required |
 | --------- | ------ | -------- |
 | `query`   | string | yes      |
 
-DuckDuckGo does not provide a structured API. Results are extracted from their HTML endpoint, which means coverage is limited compared to traditional search engines. It works best for factual queries, definitions, and well-known topics. Complex or niche queries may return empty results.
+Uses DuckDuckGo's HTML endpoint with POST form parameters to avoid CAPTCHAs.
+Results are parsed from the HTML response into structured title/URL/abstract triples.
+
+### ggl-search
+
+Search the web using Google. Returns structured results with title, URL, and snippet.
+
+| Parameter | Type   | Required |
+| --------- | ------ | -------- |
+| `query`   | string | yes      |
+
+Uses Google's HTML search with cookie replay to avoid blocks, derived from [googler](https://github.com/jarun/googler).
+Google aggressively blocks non-JS clients, so this tool may return empty results depending on your network environment.
 
 ### bsky-search
 
@@ -68,10 +80,6 @@ Search MDN Web Docs. Returns documentation pages for web technologies with title
 | `query`   | string | yes      |                                    |
 | `limit`   | number | no       | Number of results to return        |
 | `page`    | number | no       | Page number for pagination         |
-
-## Why not Google?
-
-Google Custom Search JSON API has been deprecated for API key authentication. The Programmable Search Engine is being wound down in favor of a new product limited to 50 domains. Existing engines continue to work until January 1, 2027, but new API keys can no longer be created for this use case. We removed Google search support entirely rather than ship a tool that will break.
 
 ## License
 

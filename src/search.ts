@@ -4,10 +4,11 @@ import { formatResults } from './format.ts'
 import { sendResult } from './opencode/notify.ts'
 import { bskySearch } from './providers/bsky-search.ts'
 import { ddgSearch } from './providers/ddg-search.ts'
+import { googleSearch } from './providers/ggl-search.ts'
 import { mdnSearch } from './providers/mdn-search.ts'
 import { standardSearch } from './providers/standard-search.ts'
 import { wikiSearch } from './providers/wiki-search.ts'
-import { renderBskyPost, renderDdgText, renderMdnDoc, renderStandardDoc, renderWikiPage } from './renderers.ts'
+import { renderBskyPost, renderDdgResult, renderGoogleResult, renderMdnDoc, renderStandardDoc, renderWikiPage } from './renderers.ts'
 import { safeAsync } from './safe.ts'
 
 type Client = PluginInput['client']
@@ -30,9 +31,35 @@ export const createDdgSearchTool = (client: Client) => {
 
       const formatted = formatResults({
         label: 'DuckDuckGo results',
-        items: [data],
-        total: 1,
-        renderItem: renderDdgText,
+        items: data,
+        total: data.length,
+        renderItem: renderDdgResult,
+      })
+
+      await postResult(client, ctx, formatted)
+
+      return 'Search results displayed in chat.'
+    },
+  })
+}
+
+export const createGoogleSearchTool = (client: Client) => {
+  return tool({
+    description: 'Search Google and return results with titles, URLs, and snippets',
+    args: {
+      query: tool.schema.string().describe('The search query'),
+    },
+    async execute(args, ctx) {
+      const { data, error } = await safeAsync(() => googleSearch(args.query))
+      if (error) {
+        return 'Google search failed: ' + error.message
+      }
+
+      const formatted = formatResults({
+        label: 'Google results',
+        items: data,
+        total: data.length,
+        renderItem: renderGoogleResult,
       })
 
       await postResult(client, ctx, formatted)

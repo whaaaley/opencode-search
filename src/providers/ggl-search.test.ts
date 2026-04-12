@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'bun:test'
-import { ddgSearch } from './ddg-search.ts'
+import { googleSearch } from './ggl-search.ts'
 
-describe('ddgSearch', () => {
+describe('googleSearch', () => {
   it('returns structured results', async () => {
-    const results = await ddgSearch('typescript programming language')
+    const results = await googleSearch('typescript programming language')
 
     expect(Array.isArray(results)).toEqual(true)
     expect(results.length > 0).toEqual(true)

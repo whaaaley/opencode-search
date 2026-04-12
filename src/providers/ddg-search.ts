@@ -1,27 +1,40 @@
-import { Readability } from '@mozilla/readability'
 import { JSDOM, VirtualConsole } from 'jsdom'
 import * as cache from '../cache.ts'
-import { parseResults } from '../parse-results.ts'
 
 const DDG_URL = 'https://html.duckduckgo.com/html/'
-const USER_AGENT = 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 
-export const ddgSearch = async (query: string): Promise<string> => {
+export type DdgResult = {
+  title: string
+  url: string
+  abstract: string
+}
+
+export const ddgSearch = async (query: string): Promise<DdgResult[]> => {
   const cacheKey = 'ddg:' + query
 
-  const cached = await cache.get<string>(cacheKey)
+  const cached = await cache.get<DdgResult[]>(cacheKey)
   if (cached) {
     return cached
   }
 
-  const url = DDG_URL + '?q=' + encodeURIComponent(query)
-
-  const response = await fetch(url, {
+  const response = await fetch(DDG_URL, {
+    method: 'POST',
     headers: {
       'User-Agent': USER_AGENT,
-      Accept: 'text/html,application/xhtml+xml',
-      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept-Encoding': 'gzip',
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'DNT': '1',
     },
+    body: new URLSearchParams({
+      q: query,
+      b: '',
+      kf: '-1',
+      kh: '1',
+      kl: 'us-en',
+      kp: '1',
+      k1: '-1',
+    }),
   })
 
   if (!response.ok) {
@@ -40,23 +53,30 @@ export const ddgSearch = async (query: string): Promise<string> => {
     // Silently ignore JSDOM errors
   })
 
-  const dom = new JSDOM(html, { url, virtualConsole })
+  const dom = new JSDOM(html, { url: DDG_URL, virtualConsole })
   const doc = dom.window.document
 
-  const reader = new Readability(doc)
-  const article = reader.parse()
+  const links = doc.querySelectorAll('.result__a')
+  const snippets = doc.querySelectorAll('.result__snippet')
 
-  if (article && article.textContent) {
-    await cache.set(cacheKey, article.textContent)
-    return article.textContent
+  const results: DdgResult[] = []
+
+  for (let i = 0; i < links.length; i++) {
+    const link = links[i]
+    if (!link) {
+      continue
+    }
+
+    const title = link.textContent?.trim() ?? ''
+    const href = link.getAttribute('href') ?? ''
+    const abstract = snippets[i]?.textContent?.trim() ?? ''
+
+    if (title && href) {
+      results.push({ title, url: href, abstract })
+    }
   }
 
-  const result = parseResults(doc)
-  if (!result) {
-    throw new Error('Could not parse DuckDuckGo results')
-  }
+  await cache.set(cacheKey, results)
 
-  await cache.set(cacheKey, result)
-
-  return result
+  return results
 }

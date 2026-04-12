@@ -1,13 +1,44 @@
 import { describe, expect, it } from 'bun:test'
-import { renderBskyPost, renderDdgText, renderMdnDoc, renderStandardDoc, renderWikiPage } from './renderers.ts'
+import { renderBskyPost, renderDdgResult, renderGoogleResult, renderMdnDoc, renderStandardDoc, renderWikiPage } from './renderers.ts'
 
-describe('renderDdgText', () => {
-  it('returns the text as-is', () => {
-    expect(renderDdgText('some search results')).toBe('some search results')
+describe('renderDdgResult', () => {
+  it('returns three lines: title, url, abstract', () => {
+    const result = { title: 'TypeScript', url: 'https://typescriptlang.org', abstract: 'A typed superset of JavaScript' }
+    const lines = renderDdgResult(result, 0).split('\n')
+    expect(lines).toHaveLength(3)
+    expect(lines[0]).toContain('1. TypeScript')
+    expect(lines[1]).toContain('https://typescriptlang.org')
+    expect(lines[2]).toContain('A typed superset of JavaScript')
   })
 
-  it('handles empty string', () => {
-    expect(renderDdgText('')).toBe('')
+  it('uses 1-based index', () => {
+    const result = { title: 'Test', url: 'https://example.com', abstract: 'Abstract' }
+    const lines = renderDdgResult(result, 4).split('\n')
+    expect(lines[0]).toStartWith('5. ')
+  })
+
+  it('indents url and abstract lines', () => {
+    const result = { title: 'Test', url: 'https://example.com', abstract: 'Abstract' }
+    const lines = renderDdgResult(result, 0).split('\n')
+    expect(lines[1]).toStartWith('   ')
+    expect(lines[2]).toStartWith('   ')
+  })
+})
+
+describe('renderGoogleResult', () => {
+  it('returns three lines: title, url, abstract', () => {
+    const result = { title: 'TypeScript', url: 'https://typescriptlang.org', abstract: 'A typed superset of JavaScript' }
+    const lines = renderGoogleResult(result, 0).split('\n')
+    expect(lines).toHaveLength(3)
+    expect(lines[0]).toContain('1. TypeScript')
+    expect(lines[1]).toContain('https://typescriptlang.org')
+    expect(lines[2]).toContain('A typed superset of JavaScript')
+  })
+
+  it('uses 1-based index', () => {
+    const result = { title: 'Test', url: 'https://example.com', abstract: 'Abstract' }
+    const lines = renderGoogleResult(result, 4).split('\n')
+    expect(lines[0]).toStartWith('5. ')
   })
 })
 
