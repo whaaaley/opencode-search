@@ -16,6 +16,47 @@ Add to your `opencode.json`:
 
 Restart OpenCode. The plugin will be installed automatically.
 
+## Proxy Configuration
+
+You can configure outbound proxying in the plugin entry. The proxy is used only by this plugin's search requests; it does not affect OpenCode or the configured model provider. Use an absolute path for a local checkout because OpenCode does not expand `~` in plugin paths.
+
+```json
+{
+  "plugin": [
+    [
+      "/absolute/path/to/opencode-search",
+      {
+        "proxy": {
+          "socksProxy": "socks5://127.0.0.1:9050",
+          "noProxy": "localhost,127.0.0.1"
+        }
+      }
+    ]
+  ]
+}
+```
+
+Use `httpProxy` and `httpsProxy` for standard HTTP or HTTPS proxies. If only one is set, it is used for both HTTP and HTTPS requests. `noProxy` contains an optional comma-separated bypass list. Use `socksProxy` for a SOCKS5 proxy; it takes precedence over the HTTP proxy settings.
+
+As an alternative, set `OPENCODE_SEARCH_HTTP_PROXY`, `OPENCODE_SEARCH_HTTPS_PROXY`, `OPENCODE_SEARCH_SOCKS_PROXY`, or `OPENCODE_SEARCH_NO_PROXY` before starting OpenCode. Values in `opencode.json` take precedence. Generic variables such as `HTTP_PROXY` are deliberately ignored so this plugin cannot accidentally inherit OpenCode's proxy configuration.
+
+When a SOCKS proxy is configured, the plugin checks Tor's official IP endpoint once at startup and caches the result. Over Tor:
+
+- DuckDuckGo automatically uses its official onion `/html` endpoint.
+- Wikipedia, MDN, and Bluesky use their normal APIs and have been verified to work.
+- Google fails immediately with a clear error because it requires a JavaScript challenge over Tor.
+- Standard.site may return an upstream 502; this has also occurred without Tor.
+
+All proxied requests have a 20-second timeout and fail closed; they never retry over a direct connection.
+
+For a local checkout, build the package and reference its directory in `opencode.json`. Remove any automatic `.opencode/plugins/` symlink for this plugin so it is not loaded twice:
+
+```bash
+cd /absolute/path/to/opencode-search
+npm install
+npm run build
+```
+
 ## Tools
 
 ### ddg-search

@@ -1,8 +1,11 @@
 import { JSDOM, VirtualConsole } from 'jsdom'
 import * as cache from '../cache.ts'
+import { getProxyCacheScope, getProxyStatus, isTorProxy, proxyFetch } from '../proxy.ts'
 
 const DDG_URL = 'https://html.duckduckgo.com/html/'
-const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+const DDG_ONION_URL = 'https://duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion/html'
+const USER_AGENT =
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 
 export type DdgResult = {
   title: string
@@ -11,31 +14,35 @@ export type DdgResult = {
 }
 
 export const ddgSearch = async (query: string): Promise<DdgResult[]> => {
-  const cacheKey = 'ddg:' + query
+  const cacheKey = getProxyCacheScope() + 'ddg:' + query
 
   const cached = await cache.get<DdgResult[]>(cacheKey)
   if (cached) {
     return cached
   }
 
-  const response = await fetch(DDG_URL, {
-    method: 'POST',
-    headers: {
-      'User-Agent': USER_AGENT,
-      'Accept-Encoding': 'gzip',
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'DNT': '1',
-    },
-    body: new URLSearchParams({
-      q: query,
-      b: '',
-      kf: '-1',
-      kh: '1',
-      kl: 'us-en',
-      kp: '1',
-      k1: '-1',
-    }),
+  const params = new URLSearchParams({
+    q: query,
+    b: '',
+    kf: '-1',
+    kh: '1',
+    kl: 'us-en',
+    kp: '1',
+    k1: '-1',
   })
+  const useOnion = await isTorProxy()
+  let responseUrl = useOnion ? DDG_ONION_URL : DDG_URL
+  let response = useOnion
+    ? await fetchOnion(params)
+    : await fetchClearnet(params)
+
+  if (response.status === 403 && getProxyStatus().proxyType === 'socks') {
+    const blockedHtml = await response.text()
+    if (blockedHtml.includes('detected that you have connected over Tor')) {
+      responseUrl = DDG_ONION_URL
+      response = await fetchOnion(params)
+    }
+  }
 
   if (!response.ok) {
     throw new Error(response.status + ' ' + response.statusText)
@@ -53,7 +60,7 @@ export const ddgSearch = async (query: string): Promise<DdgResult[]> => {
     // Silently ignore JSDOM errors
   })
 
-  const dom = new JSDOM(html, { url: DDG_URL, virtualConsole })
+  const dom = new JSDOM(html, { url: responseUrl, virtualConsole })
   const doc = dom.window.document
 
   const links = doc.querySelectorAll('.result__a')
@@ -68,7 +75,7 @@ export const ddgSearch = async (query: string): Promise<DdgResult[]> => {
     }
 
     const title = link.textContent?.trim() ?? ''
-    const href = link.getAttribute('href') ?? ''
+    const href = normalizeResultUrl(link.getAttribute('href') ?? '', responseUrl)
     const abstract = snippets[i]?.textContent?.trim() ?? ''
 
     if (title && href) {
@@ -79,4 +86,36 @@ export const ddgSearch = async (query: string): Promise<DdgResult[]> => {
   await cache.set(cacheKey, results)
 
   return results
+}
+
+const fetchClearnet = (params: URLSearchParams) =>
+  proxyFetch(DDG_URL, {
+    method: 'POST',
+    headers: {
+      'User-Agent': USER_AGENT,
+      'Accept-Encoding': 'gzip',
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'DNT': '1',
+    },
+    body: params,
+  })
+
+const fetchOnion = (params: URLSearchParams) =>
+  proxyFetch(DDG_ONION_URL + '?' + params.toString(), {
+    headers: {
+      'User-Agent': USER_AGENT,
+      'Accept-Encoding': 'gzip',
+      'DNT': '1',
+    },
+  })
+
+const normalizeResultUrl = (href: string, baseUrl: string): string => {
+  if (!href) return ''
+
+  try {
+    const url = new URL(href, baseUrl)
+    return url.searchParams.get('uddg') ?? url.toString()
+  } catch {
+    return href
+  }
 }

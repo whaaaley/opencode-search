@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import * as cache from '../cache.ts'
+import { getProxyCacheScope, proxyFetch } from '../proxy.ts'
 import { USER_AGENT } from '../user-agent.ts'
 
 const MDN_API = 'https://developer.mozilla.org/api/v1/search'
@@ -37,7 +38,7 @@ type MdnSearchOptions = {
 
 export const mdnSearch = async (options: MdnSearchOptions): Promise<MdnSearchResult> => {
   const cacheKey = [
-    'mdn',
+    getProxyCacheScope() + 'mdn',
     options.query,
     options.limit ?? 10,
     options.page ?? 1,
@@ -62,7 +63,7 @@ export const mdnSearch = async (options: MdnSearchOptions): Promise<MdnSearchRes
   }
 
   const url = MDN_API + '?' + params.toString()
-  const res = await fetch(url, {
+  const res = await proxyFetch(url, {
     headers: { 'User-Agent': USER_AGENT },
   })
 

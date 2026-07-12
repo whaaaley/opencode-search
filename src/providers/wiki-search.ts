@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import * as cache from '../cache.ts'
 import { normalizeBlurb } from '../normalize-blurb.ts'
+import { getProxyCacheScope, proxyFetch } from '../proxy.ts'
 import { USER_AGENT } from '../user-agent.ts'
 
 const WIKI_API = 'https://en.wikipedia.org/w/rest.php/v1/search/page'
@@ -37,7 +38,7 @@ type WikiSearchOptions = {
 }
 
 export const wikiSearch = async (options: WikiSearchOptions): Promise<WikiSearchResult> => {
-  const cacheKey = 'wiki:' + options.query + ':' + (options.limit ?? 10)
+  const cacheKey = getProxyCacheScope() + 'wiki:' + options.query + ':' + (options.limit ?? 10)
 
   const cached = await cache.get<WikiSearchResult>(cacheKey)
   if (cached && cached.pages && cached.pages.length > 0) {
@@ -51,7 +52,7 @@ export const wikiSearch = async (options: WikiSearchOptions): Promise<WikiSearch
   }
 
   const url = WIKI_API + '?' + params.toString()
-  const res = await fetch(url, {
+  const res = await proxyFetch(url, {
     headers: { 'User-Agent': USER_AGENT },
   })
 

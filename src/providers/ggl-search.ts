@@ -1,5 +1,6 @@
 import { JSDOM, VirtualConsole } from 'jsdom'
 import * as cache from '../cache.ts'
+import { getProxyCacheScope, isTorProxy, proxyFetch } from '../proxy.ts'
 
 const GOOGLE_URL = 'https://www.google.com/search'
 const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -27,11 +28,15 @@ const unwrapUrl = (href: string): string => {
 }
 
 export const googleSearch = async (query: string): Promise<GoogleResult[]> => {
-  const cacheKey = 'ggl:' + query
+  const cacheKey = getProxyCacheScope() + 'ggl:' + query
 
   const cached = await cache.get<GoogleResult[]>(cacheKey)
   if (cached) {
     return cached
+  }
+
+  if (await isTorProxy()) {
+    throw new Error('Google search is unavailable over Tor because Google requires a JavaScript challenge')
   }
 
   const params = new URLSearchParams({
@@ -53,7 +58,7 @@ export const googleSearch = async (query: string): Promise<GoogleResult[]> => {
   }
 
   // Initial request to capture cookies (like googler does)
-  const init = await fetch(GOOGLE_URL + '?' + params, {
+  const init = await proxyFetch(GOOGLE_URL + '?' + params, {
     headers,
     redirect: 'manual',
   })
@@ -73,7 +78,7 @@ export const googleSearch = async (query: string): Promise<GoogleResult[]> => {
 
   // Follow through if we got a redirect, otherwise use the initial response
   const res = init.redirected || init.status >= 300
-    ? await fetch(GOOGLE_URL + '?' + params, { headers })
+    ? await proxyFetch(GOOGLE_URL + '?' + params, { headers })
     : init
 
   if (!res.ok) {
@@ -84,6 +89,10 @@ export const googleSearch = async (query: string): Promise<GoogleResult[]> => {
 
   if (html.includes('sorry/IndexRedirect') || html.includes('sorry/index')) {
     throw new Error('Google returned a CAPTCHA/block page')
+  }
+
+  if (html.includes('/httpservice/retry/enablejs')) {
+    throw new Error('Google requires JavaScript for this network route')
   }
 
   const virtualConsole = new VirtualConsole()
@@ -112,6 +121,10 @@ export const googleSearch = async (query: string): Promise<GoogleResult[]> => {
     if (title && url && url.startsWith('http')) {
       results.push({ title, url, abstract })
     }
+  }
+
+  if (results.length === 0) {
+    throw new Error('Google returned no parseable results; this network route may be blocked')
   }
 
   await cache.set(cacheKey, results)

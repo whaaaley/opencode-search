@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import * as cache from '../cache.ts'
+import { getProxyCacheScope, proxyFetch } from '../proxy.ts'
 
 const BSKY_API = 'https://api.bsky.app/xrpc/app.bsky.feed.searchPosts'
 
@@ -46,7 +47,7 @@ type BskySearchOptions = {
 
 export const bskySearch = async (options: BskySearchOptions): Promise<BskySearchResult> => {
   const cacheKey = [
-    'bsky',
+    getProxyCacheScope() + 'bsky',
     options.query,
     options.sort ?? 'latest',
     options.limit ?? 25,
@@ -68,7 +69,7 @@ export const bskySearch = async (options: BskySearchOptions): Promise<BskySearch
   }
 
   const url = BSKY_API + '?' + params.toString()
-  const res = await fetch(url)
+  const res = await proxyFetch(url)
 
   if (!res.ok) {
     const text = await res.text()

@@ -1,5 +1,6 @@
 import { JSDOM, VirtualConsole } from 'jsdom'
 import * as cache from '../cache.ts'
+import { getProxyCacheScope, proxyFetch } from '../proxy.ts'
 
 const SEARCH_URL = 'https://standard-search.octet-stream.net/search'
 
@@ -48,7 +49,7 @@ type StandardSearchOptions = {
 }
 
 export const standardSearch = async (options: StandardSearchOptions): Promise<StandardSearchResult> => {
-  const cacheKey = ['standard', options.query, options.limit ?? 0, options.offset ?? 0].join(':')
+  const cacheKey = [getProxyCacheScope() + 'standard', options.query, options.limit ?? 0, options.offset ?? 0].join(':')
 
   const cached = await cache.get<StandardSearchResult>(cacheKey)
   if (cached && cached.documents && cached.documents.length > 0) {
@@ -56,7 +57,7 @@ export const standardSearch = async (options: StandardSearchOptions): Promise<St
   }
 
   const url = SEARCH_URL + '?q=' + encodeURIComponent(options.query)
-  const res = await fetch(url)
+  const res = await proxyFetch(url)
 
   if (!res.ok) {
     throw new Error('Standard Search error (' + res.status + '): ' + res.statusText)

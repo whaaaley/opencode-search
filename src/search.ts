@@ -8,7 +8,15 @@ import { googleSearch } from './providers/ggl-search.ts'
 import { mdnSearch } from './providers/mdn-search.ts'
 import { standardSearch } from './providers/standard-search.ts'
 import { wikiSearch } from './providers/wiki-search.ts'
-import { renderBskyPost, renderDdgResult, renderGoogleResult, renderMdnDoc, renderStandardDoc, renderWikiPage } from './renderers.ts'
+import { configureProxy, getProxyStatus, proxyConfigFromOptions } from './proxy.ts'
+import {
+  renderBskyPost,
+  renderDdgResult,
+  renderGoogleResult,
+  renderMdnDoc,
+  renderStandardDoc,
+  renderWikiPage,
+} from './renderers.ts'
 import { safeAsync } from './safe.ts'
 
 type Client = PluginInput['client']
@@ -204,4 +212,28 @@ export const createMdnSearchTool = (client: Client) => {
       return 'Search results displayed in chat.'
     },
   })
+}
+
+export const createPlugin = async (input: PluginInput, options?: unknown) => {
+  await configureProxy(proxyConfigFromOptions(options))
+
+  await input.client.app.log({
+    body: {
+      service: 'opencode-search',
+      level: 'info',
+      message: 'proxy configuration initialized',
+      extra: getProxyStatus(),
+    },
+  }).catch(() => {})
+
+  return {
+    tool: {
+      'bsky-search': createBskySearchTool(input.client),
+      'ddg-search': createDdgSearchTool(input.client),
+      'ggl-search': createGoogleSearchTool(input.client),
+      'mdn-search': createMdnSearchTool(input.client),
+      'standard-search': createStandardSearchTool(input.client),
+      'wiki-search': createWikiSearchTool(input.client),
+    },
+  }
 }
