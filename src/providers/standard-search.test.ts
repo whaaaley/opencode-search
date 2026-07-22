@@ -1,23 +1,21 @@
 import { describe, expect, it } from 'bun:test'
+import { safeAsync } from '../safe.ts'
 import { standardSearch } from './standard-search.ts'
 
-const isServiceDown = (error: unknown): boolean => {
-  const message = error instanceof Error ? error.message : String(error)
-  return message.includes('Unable to connect') || message.includes('ConnectionRefused')
-}
+const isServiceDown = (error: Error): boolean => (
+  error.message.includes('Unable to connect') || error.message.includes('ConnectionRefused')
+)
 
 describe('standardSearch', () => {
   it('returns document results', async () => {
-    let results
-    try {
-      results = await standardSearch({ query: 'atproto' })
-    } catch (error) {
-      // The community appview (standard-search.octet-stream.net) goes down
-      // periodically — an unreachable host isn't a bug in this plugin.
+    const { data: results, error } = await safeAsync(() => standardSearch({ query: 'atproto' }))
+    if (error) {
+      // An unreachable appview host is a service outage, not a plugin bug
       if (isServiceDown(error)) {
         console.warn('standard-search appview unreachable, skipping live assertion')
         return
       }
+
       throw error
     }
 

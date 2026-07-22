@@ -20,6 +20,28 @@ const textOutput = (structured: Record<string, unknown>, text: string): Tool.Dyn
   content: [{ type: 'text', text }],
 })
 
+const isRecord = (value: unknown): value is Record<string, unknown> => (
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+)
+
+const stringField = (input: unknown, key: string): string => {
+  if (!isRecord(input)) {
+    return ''
+  }
+
+  const value = input[key]
+  return typeof value === 'string' ? value : ''
+}
+
+const numberField = (input: unknown, key: string): number | undefined => {
+  if (!isRecord(input)) {
+    return undefined
+  }
+
+  const value = input[key]
+  return typeof value === 'number' ? value : undefined
+}
+
 const queryArg = {
   type: 'object',
   properties: {
@@ -34,8 +56,9 @@ export const createDdgSearchTool = (context: Plugin.Context): Tool.DynamicDefini
   description: 'Search DuckDuckGo and return results as extracted text content',
   jsonSchema: queryArg,
   async execute(input, ctx) {
-    const args = input as { query: string }
-    const { data, error } = await safeAsync(() => ddgSearch(args.query))
+    const query = stringField(input, 'query')
+
+    const { data, error } = await safeAsync(() => ddgSearch(query))
     if (error) {
       return textOutput({ error: error.message }, 'DuckDuckGo search failed: ' + error.message)
     }
@@ -61,8 +84,9 @@ export const createGoogleSearchTool = (context: Plugin.Context): Tool.DynamicDef
   ].join(' '),
   jsonSchema: queryArg,
   async execute(input, ctx) {
-    const args = input as { query: string }
-    const { data, error } = await safeAsync(() => googleSearch(args.query))
+    const query = stringField(input, 'query')
+
+    const { data, error } = await safeAsync(() => googleSearch(query))
     if (error) {
       return textOutput({ error: error.message }, 'Google search failed: ' + error.message)
     }
@@ -97,9 +121,12 @@ export const createBskySearchTool = (context: Plugin.Context): Tool.DynamicDefin
     additionalProperties: false,
   },
   async execute(input, ctx) {
-    const args = input as { query: string; limit?: number; sort?: string }
+    const query = stringField(input, 'query')
+    const limit = numberField(input, 'limit')
+    const sort = stringField(input, 'sort') || undefined
+
     const { data, error } = await safeAsync(() => (
-      bskySearch({ query: args.query, limit: args.limit, sort: args.sort })
+      bskySearch({ query, limit, sort })
     ))
 
     if (error) {
@@ -110,7 +137,7 @@ export const createBskySearchTool = (context: Plugin.Context): Tool.DynamicDefin
       label: 'Bluesky results',
       items: data.posts,
       total: data.hitsTotal,
-      limit: args.limit,
+      limit,
       offset: 0,
       renderItem: renderBskyPost,
     })
@@ -138,9 +165,12 @@ export const createStandardSearchTool = (context: Plugin.Context): Tool.DynamicD
     additionalProperties: false,
   },
   async execute(input, ctx) {
-    const args = input as { query: string; limit?: number; offset?: number }
+    const query = stringField(input, 'query')
+    const limit = numberField(input, 'limit')
+    const offset = numberField(input, 'offset')
+
     const { data, error } = await safeAsync(() => (
-      standardSearch({ query: args.query, limit: args.limit, offset: args.offset })
+      standardSearch({ query, limit, offset })
     ))
 
     if (error) {
@@ -152,8 +182,8 @@ export const createStandardSearchTool = (context: Plugin.Context): Tool.DynamicD
       label: 'Standard.site results',
       items: data.documents,
       total,
-      limit: args.limit,
-      offset: args.offset,
+      limit,
+      offset,
       renderItem: renderStandardDoc,
     })
 
@@ -176,9 +206,11 @@ export const createWikiSearchTool = (context: Plugin.Context): Tool.DynamicDefin
     additionalProperties: false,
   },
   async execute(input, ctx) {
-    const args = input as { query: string; limit?: number }
+    const query = stringField(input, 'query')
+    const limit = numberField(input, 'limit')
+
     const { data, error } = await safeAsync(() => (
-      wikiSearch({ query: args.query, limit: args.limit })
+      wikiSearch({ query, limit })
     ))
 
     if (error) {
@@ -189,7 +221,7 @@ export const createWikiSearchTool = (context: Plugin.Context): Tool.DynamicDefin
       label: 'Wikipedia results',
       items: data.pages,
       total: data.pages.length,
-      limit: args.limit,
+      limit,
       offset: 0,
       renderItem: renderWikiPage,
     })
@@ -214,9 +246,12 @@ export const createMdnSearchTool = (context: Plugin.Context): Tool.DynamicDefini
     additionalProperties: false,
   },
   async execute(input, ctx) {
-    const args = input as { query: string; limit?: number; page?: number }
+    const query = stringField(input, 'query')
+    const limit = numberField(input, 'limit')
+    const page = numberField(input, 'page')
+
     const { data, error } = await safeAsync(() => (
-      mdnSearch({ query: args.query, limit: args.limit, page: args.page })
+      mdnSearch({ query, limit, page })
     ))
 
     if (error) {
@@ -227,7 +262,7 @@ export const createMdnSearchTool = (context: Plugin.Context): Tool.DynamicDefini
       label: 'MDN Web Docs results',
       items: data.documents,
       total: data.total,
-      limit: args.limit,
+      limit,
       renderItem: renderMdnDoc,
     })
 

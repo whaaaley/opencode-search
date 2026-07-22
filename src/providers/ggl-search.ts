@@ -6,8 +6,7 @@ const GOOGLE_URL = 'https://www.google.com/search'
 const BRAVE_URL = 'https://search.brave.com/search'
 const MOJEEK_URL = 'https://www.mojeek.com/search'
 
-// 'enablejs' / 'Update your browser' are Google's JS-mandatory walls (rolled
-// out 2025) — treat them as blocks so the fallback engines get a chance.
+// 'enablejs' and 'Update your browser' are Google's JS-mandatory walls, treated as blocks
 const BLOCK_MARKERS = ['sorry/IndexRedirect', 'sorry/index', 'enablejs', 'Update your browser']
 
 export type GoogleResult = {
@@ -16,7 +15,7 @@ export type GoogleResult = {
   abstract: string
 }
 
-// Generate a random base64 string like googler's sei param
+// The sei param mimics an organic session token
 const randomSei = (): string => {
   const bytes = crypto.getRandomValues(new Uint8Array(24))
   return btoa(String.fromCharCode(...bytes))
@@ -44,8 +43,7 @@ const searchParams = (query: string): URLSearchParams => (
   })
 )
 
-// Cookie capture and replay, ported from googler: hit the endpoint once,
-// keep whatever cookie it sets, and retry with it if we got bounced.
+// Google bounces cookieless requests, so the first response's cookie is replayed on retry
 const fetchGoogle = async (query: string, userAgent: string): Promise<string> => {
   const params = searchParams(query)
   const headers: Record<string, string> = {
@@ -91,7 +89,7 @@ const parseResults = (html: string): GoogleResult[] => {
   const doc = dom.window.document
 
   // Google result containers: div.g
-  // WARNING: Google changes class names periodically — these selectors are fragile
+  // Google changes class names periodically, so these selectors are fragile
   const containers = doc.querySelectorAll('div.g')
   const results: GoogleResult[] = []
 
@@ -182,9 +180,8 @@ export const googleSearch = async (query: string): Promise<GoogleResult[]> => {
     return cached
   }
 
-  // Google mandates JavaScript for search as of 2025, so the direct scrape
-  // (googler's approach) usually hits a block marker now. Brave and Mojeek
-  // serve server-rendered HTML and act as stand-ins when it does.
+  // Google mandates JavaScript for search, so the direct scrape usually hits a block marker
+  // Brave and Mojeek serve server-rendered HTML and act as stand-ins when it does
   const results = await runStrategies([
     { name: 'ggl-direct', run: (userAgent) => fetchGoogle(query, userAgent).then(parseResults) },
     { name: 'ggl-brave', run: (userAgent) => braveSearch(query, userAgent) },

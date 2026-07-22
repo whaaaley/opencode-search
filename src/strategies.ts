@@ -1,7 +1,4 @@
-// Shared request strategies, loosely ported from the ddgr and googler CLI
-// tools. Both tools survive scraping HTML endpoints with the same handful of
-// concepts: realistic desktop user agents, block/CAPTCHA detection, and
-// falling back to an alternate endpoint when the primary one refuses.
+import { safeAsync } from './safe.ts'
 
 export const USER_AGENTS = [
   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -12,11 +9,12 @@ export const USER_AGENTS = [
 
 let uaIndex = 0
 
-// Rotate through the pool so a blocked strategy retries with a fresh identity
+// Rotation gives each fallback attempt a fresh identity after a block
 export const nextUserAgent = (): string => {
-  const agent = USER_AGENTS[uaIndex % USER_AGENTS.length] as string
+  const agent = USER_AGENTS[uaIndex % USER_AGENTS.length]
   uaIndex += 1
-  return agent
+
+  return agent ?? ''
 }
 
 export const baseHeaders = (userAgent: string): Record<string, string> => ({
@@ -46,22 +44,22 @@ export type Strategy<T> = {
   run: (userAgent: string) => Promise<T[]>
 }
 
-// Try each strategy in order with a rotated user agent. A strategy "fails"
-// by throwing or by returning zero results; the next one gets a chance.
-// The last error propagates if nothing succeeds.
+// A strategy fails by throwing or by returning zero results; the next one gets a chance
 export const runStrategies = async <T>(strategies: Strategy<T>[]): Promise<T[]> => {
   let lastError: Error = new Error('no strategies provided')
 
   for (const strategy of strategies) {
-    try {
-      const results = await strategy.run(nextUserAgent())
-      if (results.length > 0) {
-        return results
-      }
-      lastError = new Error(strategy.name + ' returned no results')
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error))
+    const { data, error } = await safeAsync(() => strategy.run(nextUserAgent()))
+    if (error) {
+      lastError = error
+      continue
     }
+
+    if (data.length > 0) {
+      return data
+    }
+
+    lastError = new Error(strategy.name + ' returned no results')
   }
 
   throw lastError

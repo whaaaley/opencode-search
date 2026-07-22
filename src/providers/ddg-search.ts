@@ -2,8 +2,7 @@ import { JSDOM, VirtualConsole } from 'jsdom'
 import * as cache from '../cache.ts'
 import { baseHeaders, detectBlock, runStrategies } from '../strategies.ts'
 
-// Endpoints ported from ddgr: the html frontend is the primary, the lite
-// frontend is the fallback when html is blocked or empty.
+// The lite frontend is the fallback when the html frontend is blocked or empty
 const DDG_HTML_URL = 'https://html.duckduckgo.com/html/'
 const DDG_LITE_URL = 'https://lite.duckduckgo.com/lite/'
 

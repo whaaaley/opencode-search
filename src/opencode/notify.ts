@@ -1,16 +1,15 @@
 import type { Plugin } from '@opencode-ai/plugin/v2'
-
-type SessionID = Parameters<Plugin.Context['session']['synthetic']>[0]['sessionID']
+import type * as Tool from '@opencode-ai/plugin/v2/tool'
 
 type SendResultOptions = {
   context: Plugin.Context
-  sessionID: string
+  sessionID: Tool.Context['sessionID']
   text: string
 }
 
 export const sendResult = async (options: SendResultOptions): Promise<void> => {
   await options.context.session.synthetic({
-    sessionID: options.sessionID as SessionID,
+    sessionID: options.sessionID,
     text: options.text,
     description: 'Search results',
   })
