@@ -1,22 +1,17 @@
-import type { PluginInput } from '@opencode-ai/plugin'
+import type { Plugin } from '@opencode-ai/plugin/v2'
 
-type Client = PluginInput['client']
+type SessionID = Parameters<Plugin.Context['session']['synthetic']>[0]['sessionID']
 
 type SendResultOptions = {
-  client: Client
+  context: Plugin.Context
   sessionID: string
   text: string
 }
 
 export const sendResult = async (options: SendResultOptions): Promise<void> => {
-  await options.client.session.prompt({
-    path: { id: options.sessionID },
-    body: {
-      noReply: true,
-      parts: [{
-        type: 'text',
-        text: options.text,
-      }],
-    },
+  await options.context.session.synthetic({
+    sessionID: options.sessionID as SessionID,
+    text: options.text,
+    description: 'Search results',
   })
 }

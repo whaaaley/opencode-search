@@ -1,8 +1,14 @@
 import { JSDOM, VirtualConsole } from 'jsdom'
 import * as cache from '../cache.ts'
+import { baseHeaders, detectBlock, runStrategies } from '../strategies.ts'
 
 const GOOGLE_URL = 'https://www.google.com/search'
-const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+const BRAVE_URL = 'https://search.brave.com/search'
+const MOJEEK_URL = 'https://www.mojeek.com/search'
+
+// 'enablejs' / 'Update your browser' are Google's JS-mandatory walls (rolled
+// out 2025) — treat them as blocks so the fallback engines get a chance.
+const BLOCK_MARKERS = ['sorry/IndexRedirect', 'sorry/index', 'enablejs', 'Update your browser']
 
 export type GoogleResult = {
   title: string
@@ -26,15 +32,8 @@ const unwrapUrl = (href: string): string => {
   return href
 }
 
-export const googleSearch = async (query: string): Promise<GoogleResult[]> => {
-  const cacheKey = 'ggl:' + query
-
-  const cached = await cache.get<GoogleResult[]>(cacheKey)
-  if (cached) {
-    return cached
-  }
-
-  const params = new URLSearchParams({
+const searchParams = (query: string): URLSearchParams => (
+  new URLSearchParams({
     q: query,
     ie: 'UTF-8',
     oe: 'UTF-8',
@@ -43,35 +42,31 @@ export const googleSearch = async (query: string): Promise<GoogleResult[]> => {
     hl: 'en',
     gl: 'us',
   })
+)
 
+// Cookie capture and replay, ported from googler: hit the endpoint once,
+// keep whatever cookie it sets, and retry with it if we got bounced.
+const fetchGoogle = async (query: string, userAgent: string): Promise<string> => {
+  const params = searchParams(query)
   const headers: Record<string, string> = {
-    'Accept': 'text/html',
-    'Accept-Encoding': 'gzip',
-    'User-Agent': USER_AGENT,
+    ...baseHeaders(userAgent),
     'Connection': 'keep-alive',
-    'DNT': '1',
   }
 
-  // Initial request to capture cookies (like googler does)
   const init = await fetch(GOOGLE_URL + '?' + params, {
     headers,
     redirect: 'manual',
   })
 
-  // Check for block/CAPTCHA redirect
   const location = init.headers.get('location') ?? ''
-  if (location.includes('sorry/IndexRedirect') || location.includes('sorry/index')) {
-    throw new Error('Google returned a CAPTCHA/block redirect')
-  }
+  detectBlock('Google', location, BLOCK_MARKERS)
 
-  // Capture and replay cookies
   const setCookie = init.headers.get('set-cookie')
   if (setCookie) {
     const [cookie = ''] = setCookie.split(';')
     headers['Cookie'] = cookie
   }
 
-  // Follow through if we got a redirect, otherwise use the initial response
   const res = init.redirected || init.status >= 300
     ? await fetch(GOOGLE_URL + '?' + params, { headers })
     : init
@@ -81,11 +76,12 @@ export const googleSearch = async (query: string): Promise<GoogleResult[]> => {
   }
 
   const html = await res.text()
+  detectBlock('Google', html, BLOCK_MARKERS)
 
-  if (html.includes('sorry/IndexRedirect') || html.includes('sorry/index')) {
-    throw new Error('Google returned a CAPTCHA/block page')
-  }
+  return html
+}
 
+const parseResults = (html: string): GoogleResult[] => {
   const virtualConsole = new VirtualConsole()
   virtualConsole.on('jsdomError', () => {
     // Silently ignore JSDOM errors
@@ -113,6 +109,87 @@ export const googleSearch = async (query: string): Promise<GoogleResult[]> => {
       results.push({ title, url, abstract })
     }
   }
+
+  return results
+}
+
+const makeDom = (html: string, url: string): Document => {
+  const virtualConsole = new VirtualConsole()
+  virtualConsole.on('jsdomError', () => {
+    // Silently ignore JSDOM errors
+  })
+
+  return new JSDOM(html, { url, virtualConsole }).window.document
+}
+
+const fetchHtml = async (url: string, userAgent: string): Promise<string> => {
+  const res = await fetch(url, { headers: baseHeaders(userAgent) })
+
+  if (!res.ok) {
+    throw new Error(res.status + ' ' + res.statusText)
+  }
+
+  return res.text()
+}
+
+const braveSearch = async (query: string, userAgent: string): Promise<GoogleResult[]> => {
+  const html = await fetchHtml(BRAVE_URL + '?q=' + encodeURIComponent(query), userAgent)
+  const doc = makeDom(html, BRAVE_URL)
+
+  const containers = doc.querySelectorAll('div.snippet[data-type="web"]')
+  const results: GoogleResult[] = []
+
+  for (const container of containers) {
+    const anchor = container.querySelector('a')
+    const title = container.querySelector('.title')?.textContent?.trim() ?? ''
+    const url = anchor?.getAttribute('href') ?? ''
+    const abstract = container.querySelector('.generic-snippet .content')?.textContent?.trim() ?? ''
+
+    if (title && url.startsWith('http')) {
+      results.push({ title, url, abstract })
+    }
+  }
+
+  return results
+}
+
+const mojeekSearch = async (query: string, userAgent: string): Promise<GoogleResult[]> => {
+  const html = await fetchHtml(MOJEEK_URL + '?q=' + encodeURIComponent(query), userAgent)
+  const doc = makeDom(html, MOJEEK_URL)
+
+  const items = doc.querySelectorAll('ul.results-standard li')
+  const results: GoogleResult[] = []
+
+  for (const item of items) {
+    const anchor = item.querySelector('h2 a.title')
+    const title = anchor?.textContent?.trim() ?? ''
+    const url = anchor?.getAttribute('href') ?? ''
+    const abstract = item.querySelector('p.s')?.textContent?.trim() ?? ''
+
+    if (title && url.startsWith('http')) {
+      results.push({ title, url, abstract })
+    }
+  }
+
+  return results
+}
+
+export const googleSearch = async (query: string): Promise<GoogleResult[]> => {
+  const cacheKey = 'ggl:' + query
+
+  const cached = await cache.get<GoogleResult[]>(cacheKey)
+  if (cached) {
+    return cached
+  }
+
+  // Google mandates JavaScript for search as of 2025, so the direct scrape
+  // (googler's approach) usually hits a block marker now. Brave and Mojeek
+  // serve server-rendered HTML and act as stand-ins when it does.
+  const results = await runStrategies([
+    { name: 'ggl-direct', run: (userAgent) => fetchGoogle(query, userAgent).then(parseResults) },
+    { name: 'ggl-brave', run: (userAgent) => braveSearch(query, userAgent) },
+    { name: 'ggl-mojeek', run: (userAgent) => mojeekSearch(query, userAgent) },
+  ])
 
   await cache.set(cacheKey, results)
 
