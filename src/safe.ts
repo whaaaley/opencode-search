@@ -1,8 +1,14 @@
-export type Result<T, E> =
-  | { data: T; error: null }
-  | { data: null; error: E }
+type SafeSuccess<T> = {
+  data: T
+  error: null
+}
 
-type SafeResult<T> = Result<T, Error>
+type SafeError = {
+  data: null
+  error: Error
+}
+
+export type SafeResult<T> = SafeSuccess<T> | SafeError
 
 export const safe = <T>(fn: () => T): SafeResult<T> => {
   try {
