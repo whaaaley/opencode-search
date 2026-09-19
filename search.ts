@@ -11,7 +11,7 @@ if (error || typeof plugin.Plugin?.define !== 'function') {
 }
 
 export default plugin.Plugin.define({
-  id: 'whaaaley.search',
+  id: 'opencode-search',
   setup: async (ctx) => {
     await ctx.tool.transform((tools) => {
       for (const definition of createSearchTools(ctx)) {
