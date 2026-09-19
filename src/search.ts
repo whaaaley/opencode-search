@@ -25,18 +25,14 @@ const isRecord = (value: unknown): value is Record<string, unknown> => (
 )
 
 const stringField = (input: unknown, key: string): string => {
-  if (!isRecord(input)) {
-    return ''
-  }
+  if (!isRecord(input)) return ''
 
   const value = input[key]
   return typeof value === 'string' ? value : ''
 }
 
 const numberField = (input: unknown, key: string): number | undefined => {
-  if (!isRecord(input)) {
-    return undefined
-  }
+  if (!isRecord(input)) return undefined
 
   const value = input[key]
   return typeof value === 'number' ? value : undefined
@@ -59,9 +55,7 @@ export const createDdgSearchTool = (context: Plugin.Context): Tool.DynamicDefini
     const query = stringField(input, 'query')
 
     const { data, error } = await safeAsync(() => ddgSearch(query))
-    if (error) {
-      return textOutput({ error: error.message }, 'DuckDuckGo search failed: ' + error.message)
-    }
+    if (error) return textOutput({ error: error.message }, 'DuckDuckGo search failed: ' + error.message)
 
     const formatted = formatResults({
       label: 'DuckDuckGo results',
@@ -87,9 +81,7 @@ export const createGoogleSearchTool = (context: Plugin.Context): Tool.DynamicDef
     const query = stringField(input, 'query')
 
     const { data, error } = await safeAsync(() => googleSearch(query))
-    if (error) {
-      return textOutput({ error: error.message }, 'Google search failed: ' + error.message)
-    }
+    if (error) return textOutput({ error: error.message }, 'Google search failed: ' + error.message)
 
     const formatted = formatResults({
       label: 'Google results',
@@ -129,9 +121,7 @@ export const createBskySearchTool = (context: Plugin.Context): Tool.DynamicDefin
       bskySearch({ query, limit, sort })
     ))
 
-    if (error) {
-      return textOutput({ error: error.message }, 'Bluesky search failed: ' + error.message)
-    }
+    if (error) return textOutput({ error: error.message }, 'Bluesky search failed: ' + error.message)
 
     const formatted = formatResults({
       label: 'Bluesky results',
@@ -173,9 +163,7 @@ export const createStandardSearchTool = (context: Plugin.Context): Tool.DynamicD
       standardSearch({ query, limit, offset })
     ))
 
-    if (error) {
-      return textOutput({ error: error.message }, 'Standard.site search failed: ' + error.message)
-    }
+    if (error) return textOutput({ error: error.message }, 'Standard.site search failed: ' + error.message)
 
     const total = Number(data.totalResults) || data.documents.length
     const formatted = formatResults({
@@ -213,9 +201,7 @@ export const createWikiSearchTool = (context: Plugin.Context): Tool.DynamicDefin
       wikiSearch({ query, limit })
     ))
 
-    if (error) {
-      return textOutput({ error: error.message }, 'Wikipedia search failed: ' + error.message)
-    }
+    if (error) return textOutput({ error: error.message }, 'Wikipedia search failed: ' + error.message)
 
     const formatted = formatResults({
       label: 'Wikipedia results',
@@ -254,9 +240,7 @@ export const createMdnSearchTool = (context: Plugin.Context): Tool.DynamicDefini
       mdnSearch({ query, limit, page })
     ))
 
-    if (error) {
-      return textOutput({ error: error.message }, 'MDN search failed: ' + error.message)
-    }
+    if (error) return textOutput({ error: error.message }, 'MDN search failed: ' + error.message)
 
     const formatted = formatResults({
       label: 'MDN Web Docs results',

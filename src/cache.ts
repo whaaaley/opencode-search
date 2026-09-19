@@ -17,9 +17,7 @@ let store: CacheStore = {}
 let loaded = false
 
 const loadCache = async () => {
-  if (loaded) {
-    return
-  }
+  if (loaded) return
 
   const { data } = await safeAsync(() => readFile(CACHE_FILE, 'utf-8'))
 
@@ -39,9 +37,7 @@ export const get = async <T = unknown>(key: string): Promise<T | null> => {
   await loadCache()
 
   const entry = store[key]
-  if (!entry) {
-    return null
-  }
+  if (!entry) return null
 
   const age = Date.now() - entry.timestamp
   if (age > CACHE_DURATION) {

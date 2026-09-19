@@ -33,9 +33,7 @@ export class BlockedError extends Error {
 
 export const detectBlock = (source: string, html: string, markers: string[]): void => {
   for (const marker of markers) {
-    if (html.includes(marker)) {
-      throw new BlockedError(source)
-    }
+    if (html.includes(marker)) throw new BlockedError(source)
   }
 }
 
@@ -55,9 +53,7 @@ export const runStrategies = async <T>(strategies: Strategy<T>[]): Promise<T[]> 
       continue
     }
 
-    if (data.length > 0) {
-      return data
-    }
+    if (data.length > 0) return data
 
     lastError = new Error(strategy.name + ' returned no results')
   }

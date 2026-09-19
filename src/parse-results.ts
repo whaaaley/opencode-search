@@ -4,9 +4,7 @@ export const parseResults = (doc: Document): string => {
 
   const lines = links.flatMap((link, i) => {
     const title = link.textContent
-    if (!title) {
-      return []
-    }
+    if (!title) return []
 
     const href = link.getAttribute('href')
     const snippet = snippets[i]
