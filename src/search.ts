@@ -24,8 +24,9 @@ const postResult = async (context: Plugin.Context, ctx: Tool.ToolContext, text: 
   await safeAsync(() => sendResult({ context, sessionID: ctx.sessionID, text }))
 }
 
-const textOutput = (output: Record<string, unknown>, text: string): Tool.Result => ({
-  output,
+// No `output` field: declaring one without a matching output schema in the tool definition makes
+// OpenCode reject the result.
+const textOutput = (text: string): Tool.Result => ({
   content: [{ type: 'text', text }],
 })
 
@@ -64,7 +65,7 @@ export const createDdgSearchTool = (context: Plugin.Context): Tool.Info => ({
     const query = stringField(input, 'query')
 
     const { data, error } = await safeAsync(() => ddgSearch(query))
-    if (error) return textOutput({ error: error.message }, 'DuckDuckGo search failed: ' + error.message)
+    if (error) return textOutput('DuckDuckGo search failed: ' + error.message)
 
     const formatted = formatResults({
       label: 'DuckDuckGo results',
@@ -75,7 +76,7 @@ export const createDdgSearchTool = (context: Plugin.Context): Tool.Info => ({
 
     await postResult(context, ctx, formatted)
 
-    return textOutput({ results: data, total: data.length }, formatted)
+    return textOutput(formatted)
   },
 })
 
@@ -87,7 +88,7 @@ export const createBraveSearchTool = (context: Plugin.Context): Tool.Info => ({
     const query = stringField(input, 'query')
 
     const { data, error } = await safeAsync(() => braveSearch(query))
-    if (error) return textOutput({ error: error.message }, 'Brave search failed: ' + error.message)
+    if (error) return textOutput('Brave search failed: ' + error.message)
 
     const formatted = formatResults({
       label: 'Brave results',
@@ -98,7 +99,7 @@ export const createBraveSearchTool = (context: Plugin.Context): Tool.Info => ({
 
     await postResult(context, ctx, formatted)
 
-    return textOutput({ results: data, total: data.length }, formatted)
+    return textOutput(formatted)
   },
 })
 
@@ -127,7 +128,7 @@ export const createBskySearchTool = (context: Plugin.Context): Tool.Info => ({
       bskySearch({ query, limit, sort })
     ))
 
-    if (error) return textOutput({ error: error.message }, 'Bluesky search failed: ' + error.message)
+    if (error) return textOutput('Bluesky search failed: ' + error.message)
 
     const formatted = formatResults({
       label: 'Bluesky results',
@@ -140,7 +141,7 @@ export const createBskySearchTool = (context: Plugin.Context): Tool.Info => ({
 
     await postResult(context, ctx, formatted)
 
-    return textOutput({ results: data.posts, total: data.hitsTotal }, 'Search results displayed in chat.')
+    return textOutput(formatted)
   },
 })
 
@@ -169,7 +170,7 @@ export const createStandardSearchTool = (context: Plugin.Context): Tool.Info => 
       standardSearch({ query, limit, offset })
     ))
 
-    if (error) return textOutput({ error: error.message }, 'Standard.site search failed: ' + error.message)
+    if (error) return textOutput('Standard.site search failed: ' + error.message)
 
     const total = Number(data.totalResults) || data.documents.length
     const formatted = formatResults({
@@ -183,7 +184,7 @@ export const createStandardSearchTool = (context: Plugin.Context): Tool.Info => 
 
     await postResult(context, ctx, formatted)
 
-    return textOutput({ results: data.documents, total }, 'Search results displayed in chat.')
+    return textOutput(formatted)
   },
 })
 
@@ -207,7 +208,7 @@ export const createWikiSearchTool = (context: Plugin.Context): Tool.Info => ({
       wikiSearch({ query, limit })
     ))
 
-    if (error) return textOutput({ error: error.message }, 'Wikipedia search failed: ' + error.message)
+    if (error) return textOutput('Wikipedia search failed: ' + error.message)
 
     const formatted = formatResults({
       label: 'Wikipedia results',
@@ -220,7 +221,7 @@ export const createWikiSearchTool = (context: Plugin.Context): Tool.Info => ({
 
     await postResult(context, ctx, formatted)
 
-    return textOutput({ results: data.pages, total: data.pages.length }, 'Search results displayed in chat.')
+    return textOutput(formatted)
   },
 })
 
@@ -245,7 +246,7 @@ export const createGnewsSearchTool = (context: Plugin.Context): Tool.Info => ({
     const limit = numberField(input, 'limit')
 
     const { data, error } = await safeAsync(() => gnewsSearch(query, limit))
-    if (error) return textOutput({ error: error.message }, 'Google News search failed: ' + error.message)
+    if (error) return textOutput('Google News search failed: ' + error.message)
 
     const formatted = formatResults({
       label: 'Google News results',
@@ -256,7 +257,7 @@ export const createGnewsSearchTool = (context: Plugin.Context): Tool.Info => ({
 
     await postResult(context, ctx, formatted)
 
-    return textOutput({ results: data, total: data.length }, formatted)
+    return textOutput(formatted)
   },
 })
 
@@ -282,7 +283,7 @@ export const createMdnSearchTool = (context: Plugin.Context): Tool.Info => ({
       mdnSearch({ query, limit, page })
     ))
 
-    if (error) return textOutput({ error: error.message }, 'MDN search failed: ' + error.message)
+    if (error) return textOutput('MDN search failed: ' + error.message)
 
     const formatted = formatResults({
       label: 'MDN Web Docs results',
@@ -294,7 +295,7 @@ export const createMdnSearchTool = (context: Plugin.Context): Tool.Info => ({
 
     await postResult(context, ctx, formatted)
 
-    return textOutput({ results: data.documents, total: data.total }, 'Search results displayed in chat.')
+    return textOutput(formatted)
   },
 })
 
