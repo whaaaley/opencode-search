@@ -57,7 +57,7 @@ const queryArg = {
 } as const
 
 export const createDdgSearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'ddg-search',
+  name: 'ddg_search',
   description: 'Search DuckDuckGo and return results as extracted text content',
   input: queryArg,
   async execute(input, ctx) {
@@ -80,7 +80,7 @@ export const createDdgSearchTool = (context: Plugin.Context): Tool.Info => ({
 })
 
 export const createBraveSearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'brave-search',
+  name: 'brave_search',
   description: 'Search the web via Brave Search, returning titles, URLs, and snippets.',
   input: queryArg,
   async execute(input, ctx) {
@@ -103,7 +103,7 @@ export const createBraveSearchTool = (context: Plugin.Context): Tool.Info => ({
 })
 
 export const createBskySearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'bsky-search',
+  name: 'bsky_search',
   description: [
     'Search Bluesky posts via the AT Protocol.',
     'Returns posts with author, text, and engagement counts.',
@@ -145,7 +145,7 @@ export const createBskySearchTool = (context: Plugin.Context): Tool.Info => ({
 })
 
 export const createStandardSearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'standard-search',
+  name: 'standard_search',
   description: [
     'Search site.standard.document records on the AT Protocol.',
     'Returns blog posts and articles from the ATmosphere.',
@@ -188,7 +188,7 @@ export const createStandardSearchTool = (context: Plugin.Context): Tool.Info => 
 })
 
 export const createWikiSearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'wiki-search',
+  name: 'wiki_search',
   description: 'Search Wikipedia articles. Returns page titles, descriptions, and excerpts.',
   input: {
     type: 'object',
@@ -225,7 +225,7 @@ export const createWikiSearchTool = (context: Plugin.Context): Tool.Info => ({
 })
 
 export const createGnewsSearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'gnews-search',
+  name: 'gnews_search',
   description: [
     'Search Google News for recent articles, returning headlines, publishers, and dates.',
     'News and tech media only — not general web search, and not documentation.',
@@ -252,7 +252,7 @@ export const createGnewsSearchTool = (context: Plugin.Context): Tool.Info => ({
 })
 
 export const createMdnSearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'mdn-search',
+  name: 'mdn_search',
   description: 'Search MDN Web Docs. Returns documentation pages for web technologies.',
   input: {
     type: 'object',

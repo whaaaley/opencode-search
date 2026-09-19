@@ -40,7 +40,7 @@ Restart OpenCode. The plugin will be installed automatically.
 
 ## Tools
 
-### ddg-search
+### ddg_search
 
 Search the web using DuckDuckGo. Returns structured results with title, URL, and snippet.
 
@@ -51,7 +51,7 @@ Search the web using DuckDuckGo. Returns structured results with title, URL, and
 Uses DuckDuckGo's HTML endpoint with POST form parameters to avoid CAPTCHAs.
 Results are parsed from the HTML response into structured title/URL/abstract triples.
 
-### brave-search
+### brave_search
 
 Search the web using Brave Search. Returns structured results with title, URL, and snippet.
 
@@ -61,7 +61,7 @@ Search the web using Brave Search. Returns structured results with title, URL, a
 
 Brave serves server-rendered HTML, so it is the most reliable general web provider here.
 
-### gnews-search
+### gnews_search
 
 Search Google News for recent articles. Returns headline, publisher, and publication date.
 
@@ -71,7 +71,7 @@ Search Google News for recent articles. Returns headline, publisher, and publica
 
 **News and tech media only — not general web search, and not documentation.** It queries the Google News RSS feed, which is a different service from Google web search and still answers plain HTTP requests. Links are `news.google.com` redirect URLs rather than publisher URLs; they resolve only in a browser, so they are reported as-is.
 
-### bsky-search
+### bsky_search
 
 Search Bluesky posts via the AT Protocol. Returns posts with author handle, text, and engagement counts (likes, reposts, replies).
 
@@ -81,7 +81,7 @@ Search Bluesky posts via the AT Protocol. Returns posts with author handle, text
 | `limit`   | number | no       | Number of results to return    |
 | `sort`    | string | no       | Sort order: `top` or `latest`  |
 
-### standard-search
+### standard_search
 
 Search [standard.site](https://standard.site) document records on the AT Protocol. Returns blog posts and articles published to the ATmosphere with title, URL, date, and snippet.
 
@@ -95,7 +95,7 @@ standard.site is a publishing platform built on the AT Protocol where content is
 
 **Currently unavailable.** The appview this tool queries, `standard-search.octet-stream.net`, refuses connections, and no replacement endpoint is published on standard.site or in its docs. The provider is left in place unchanged; its live test soft-skips while the host is unreachable, so the suite stays green without masking parser regressions.
 
-### wiki-search
+### wiki_search
 
 Search Wikipedia articles using the MediaWiki REST API. Returns structured results with title, description, excerpt, and a direct link to the article. No API key required.
 
@@ -104,7 +104,7 @@ Search Wikipedia articles using the MediaWiki REST API. Returns structured resul
 | `query`   | string | yes      |                                    |
 | `limit`   | number | no       | Number of results (1-100)          |
 
-### mdn-search
+### mdn_search
 
 Search MDN Web Docs. Returns documentation pages for web technologies with title, URL, and summary. No API key required.
 

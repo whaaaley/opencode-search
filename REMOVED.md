@@ -1,6 +1,6 @@
 # Removed providers
 
-## ggl-search — Google web search
+## ggl_search — Google web search
 
 Google returns no results to a non-browser client. Since 2025 it requires JavaScript for `/search`: a plain HTTP request gets a redirect stub pointing at `/httpservice/retry/enablejs`, with no results and no inline data in the body. A DOM parser or JS runtime does not help, because the results were never in the response. Legacy and text-browser user agents get a different wall, an "Update your browser" page.
 
@@ -16,9 +16,9 @@ The gate is applied before the page is built, so TLS fingerprinting is not the v
 
 [`googler`](https://github.com/jarun/googler) was archived in 2021, [`googlesearch-python`](https://github.com/Nv7-GitHub/googlesearch) has no commits since 2025-02 and an issue titled "google stop Lynx support" (2025-09), and `yagooglesearch` stopped in 2024.
 
-Use `brave-search` or `ddg-search` instead, or `gnews-search` for news — Google News RSS is a separate service and still answers plain HTTP.
+Use `brave_search` or `ddg_search` instead, or `gnews_search` for news — Google News RSS is a separate service and still answers plain HTTP.
 
-## mojeek-search — Mojeek
+## mojeek_search — Mojeek
 
 Mojeek's [robots.txt](https://www.mojeek.com/robots.txt) is `Disallow: /search` for all user agents, and their [terms](https://www.mojeek.com/about/terms.html) prohibit automated access except by "an authorised Mojeek API user", stating that "scraping the Services without Our prior consent is expressly prohibited".
 
