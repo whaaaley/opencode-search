@@ -75,7 +75,7 @@ export const createDdgSearchTool = (context: Plugin.Context): Tool.Info => ({
 
     await postResult(context, ctx, formatted)
 
-    return textOutput({ results: data, total: data.length }, 'Search results displayed in chat.')
+    return textOutput({ results: data, total: data.length }, formatted)
   },
 })
 
@@ -98,7 +98,7 @@ export const createBraveSearchTool = (context: Plugin.Context): Tool.Info => ({
 
     await postResult(context, ctx, formatted)
 
-    return textOutput({ results: data, total: data.length }, 'Search results displayed in chat.')
+    return textOutput({ results: data, total: data.length }, formatted)
   },
 })
 
@@ -256,7 +256,7 @@ export const createGnewsSearchTool = (context: Plugin.Context): Tool.Info => ({
 
     await postResult(context, ctx, formatted)
 
-    return textOutput({ results: data, total: data.length }, 'Search results displayed in chat.')
+    return textOutput({ results: data, total: data.length }, formatted)
   },
 })
 
