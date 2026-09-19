@@ -60,9 +60,7 @@ export const gnewsSearch = async (query: string): Promise<GnewsResult[]> => {
     // A news.google.com redirector that only resolves in a browser, reported as-is.
     const url = tag('link')
 
-    if (title && url) {
-      results.push({ title, url, abstract: '', source, date: tag('pubDate') })
-    }
+    if (title && url) results.push({ title, url, abstract: '', source, date: tag('pubDate') })
   }
 
   await cache.set(cacheKey, results)

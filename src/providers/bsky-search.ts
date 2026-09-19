@@ -53,19 +53,13 @@ export const bskySearch = async (options: BskySearchOptions): Promise<BskySearch
   ].join(':')
 
   const cached = await cache.get<BskySearchResult>(cacheKey)
-  if (cached && cached.posts && cached.posts.length > 0) {
-    return cached
-  }
+  if (cached && cached.posts && cached.posts.length > 0) return cached
 
   const params = new URLSearchParams({ q: options.query })
 
-  if (options.sort) {
-    params.set('sort', options.sort)
-  }
+  if (options.sort) params.set('sort', options.sort)
 
-  if (options.limit) {
-    params.set('limit', String(options.limit))
-  }
+  if (options.limit) params.set('limit', String(options.limit))
 
   const url = BSKY_API + '?' + params.toString()
   const res = await fetch(url)
@@ -88,9 +82,7 @@ export const bskySearch = async (options: BskySearchOptions): Promise<BskySearch
 
   const result: BskySearchResult = { posts, hitsTotal, cursor }
 
-  if (posts.length > 0) {
-    await cache.set(cacheKey, result)
-  }
+  if (posts.length > 0) await cache.set(cacheKey, result)
 
   return result
 }

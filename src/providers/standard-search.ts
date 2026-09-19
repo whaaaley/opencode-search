@@ -17,9 +17,7 @@ export type StandardSearchResult = {
 
 const parseDocument = (el: Element): StandardDocument | null => {
   const titleEl = el.querySelector('.result-title a')
-  if (!titleEl || !titleEl.textContent) {
-    return null
-  }
+  if (!titleEl || !titleEl.textContent) return null
 
   const title = titleEl.textContent.trim()
   const href = titleEl.getAttribute('href')
@@ -51,16 +49,12 @@ export const standardSearch = async (options: StandardSearchOptions): Promise<St
   const cacheKey = ['standard', options.query, options.limit ?? 0, options.offset ?? 0].join(':')
 
   const cached = await cache.get<StandardSearchResult>(cacheKey)
-  if (cached && cached.documents && cached.documents.length > 0) {
-    return cached
-  }
+  if (cached && cached.documents && cached.documents.length > 0) return cached
 
   const url = SEARCH_URL + '?q=' + encodeURIComponent(options.query)
   const res = await fetch(url)
 
-  if (!res.ok) {
-    throw new Error('Standard Search error (' + res.status + '): ' + res.statusText)
-  }
+  if (!res.ok) throw new Error('Standard Search error (' + res.status + '): ' + res.statusText)
 
   const html = await res.text()
 
@@ -79,14 +73,10 @@ export const standardSearch = async (options: StandardSearchOptions): Promise<St
 
   for (let i = 0; i < elements.length; i++) {
     const el = elements[i]
-    if (!el) {
-      continue
-    }
+    if (!el) continue
 
     const parsed = parseDocument(el)
-    if (parsed) {
-      documents.push(parsed)
-    }
+    if (parsed) documents.push(parsed)
   }
 
   const start = options.offset ?? 0
@@ -98,9 +88,7 @@ export const standardSearch = async (options: StandardSearchOptions): Promise<St
     totalResults,
   }
 
-  if (sliced.length > 0) {
-    await cache.set(cacheKey, result)
-  }
+  if (sliced.length > 0) await cache.set(cacheKey, result)
 
   return result
 }

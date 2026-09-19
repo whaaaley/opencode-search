@@ -44,22 +44,16 @@ export const mdnSearch = async (options: MdnSearchOptions): Promise<MdnSearchRes
   ].join(':')
 
   const cached = await cache.get<MdnSearchResult>(cacheKey)
-  if (cached && cached.documents && cached.documents.length > 0) {
-    return cached
-  }
+  if (cached && cached.documents && cached.documents.length > 0) return cached
 
   const params = new URLSearchParams({
     q: options.query,
     locale: 'en-US',
   })
 
-  if (options.limit) {
-    params.set('size', String(options.limit))
-  }
+  if (options.limit) params.set('size', String(options.limit))
 
-  if (options.page) {
-    params.set('page', String(options.page))
-  }
+  if (options.page) params.set('page', String(options.page))
 
   const url = MDN_API + '?' + params.toString()
   const res = await fetch(url, {
@@ -83,9 +77,7 @@ export const mdnSearch = async (options: MdnSearchOptions): Promise<MdnSearchRes
 
   const result: MdnSearchResult = { documents, total }
 
-  if (documents.length > 0) {
-    await cache.set(cacheKey, result)
-  }
+  if (documents.length > 0) await cache.set(cacheKey, result)
 
   return result
 }

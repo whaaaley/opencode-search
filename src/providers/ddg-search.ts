@@ -45,9 +45,7 @@ const fetchDdg = async (url: string, query: string, userAgent: string): Promise<
     body: searchParams(query),
   })
 
-  if (!response.ok) {
-    throw new Error(response.status + ' ' + response.statusText)
-  }
+  if (!response.ok) throw new Error(response.status + ' ' + response.statusText)
 
   const html = await response.text()
   detectBlock('DuckDuckGo', html, BLOCK_MARKERS)
@@ -65,17 +63,13 @@ const parseHtmlResults = (html: string): DdgResult[] => {
 
   for (let i = 0; i < links.length; i++) {
     const link = links[i]
-    if (!link) {
-      continue
-    }
+    if (!link) continue
 
     const title = link.textContent?.trim() ?? ''
     const href = link.getAttribute('href') ?? ''
     const abstract = snippets[i]?.textContent?.trim() ?? ''
 
-    if (title && href) {
-      results.push({ title, url: href, abstract })
-    }
+    if (title && href) results.push({ title, url: href, abstract })
   }
 
   return results
@@ -91,17 +85,13 @@ const parseLiteResults = (html: string): DdgResult[] => {
 
   for (let i = 0; i < links.length; i++) {
     const link = links[i]
-    if (!link) {
-      continue
-    }
+    if (!link) continue
 
     const title = link.textContent?.trim() ?? ''
     const href = link.getAttribute('href') ?? ''
     const abstract = snippets[i]?.textContent?.trim() ?? ''
 
-    if (title && href) {
-      results.push({ title, url: href, abstract })
-    }
+    if (title && href) results.push({ title, url: href, abstract })
   }
 
   return results
@@ -111,20 +101,15 @@ export const ddgSearch = async (query: string): Promise<DdgResult[]> => {
   const cacheKey = 'ddg:' + query
 
   const cached = await cache.get<DdgResult[]>(cacheKey)
-  if (cached) {
-    return cached
-  }
+  if (cached) return cached
 
-  const results = await runStrategies([
-    {
-      name: 'ddg-html',
-      run: async (userAgent) => parseHtmlResults(await fetchDdg(DDG_HTML_URL, query, userAgent)),
-    },
-    {
-      name: 'ddg-lite',
-      run: async (userAgent) => parseLiteResults(await fetchDdg(DDG_LITE_URL, query, userAgent)),
-    },
-  ])
+  const results = await runStrategies([{
+    name: 'ddg-html',
+    run: async (userAgent) => parseHtmlResults(await fetchDdg(DDG_HTML_URL, query, userAgent)),
+  }, {
+    name: 'ddg-lite',
+    run: async (userAgent) => parseLiteResults(await fetchDdg(DDG_LITE_URL, query, userAgent)),
+  }])
 
   await cache.set(cacheKey, results)
 

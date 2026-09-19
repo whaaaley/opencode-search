@@ -40,15 +40,11 @@ export const wikiSearch = async (options: WikiSearchOptions): Promise<WikiSearch
   const cacheKey = 'wiki:' + options.query + ':' + (options.limit ?? 10)
 
   const cached = await cache.get<WikiSearchResult>(cacheKey)
-  if (cached && cached.pages && cached.pages.length > 0) {
-    return cached
-  }
+  if (cached && cached.pages && cached.pages.length > 0) return cached
 
   const params = new URLSearchParams({ q: options.query })
 
-  if (options.limit) {
-    params.set('limit', String(options.limit))
-  }
+  if (options.limit) params.set('limit', String(options.limit))
 
   const url = WIKI_API + '?' + params.toString()
   const res = await fetch(url, {
@@ -70,9 +66,7 @@ export const wikiSearch = async (options: WikiSearchOptions): Promise<WikiSearch
 
   const result: WikiSearchResult = { pages }
 
-  if (pages.length > 0) {
-    await cache.set(cacheKey, result)
-  }
+  if (pages.length > 0) await cache.set(cacheKey, result)
 
   return result
 }

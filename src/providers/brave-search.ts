@@ -30,9 +30,7 @@ export const braveSearch = async (query: string): Promise<BraveResult[]> => {
     const url = anchor?.getAttribute('href') ?? ''
     const abstract = container.querySelector('.generic-snippet .content')?.textContent?.trim() ?? ''
 
-    if (title && url.startsWith('http')) {
-      results.push({ title, url, abstract })
-    }
+    if (title && url.startsWith('http')) results.push({ title, url, abstract })
   }
 
   await cache.set(cacheKey, results)
