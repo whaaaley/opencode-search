@@ -8,9 +8,7 @@ describe('mdnSearch', () => {
     expect(results.documents.length).toBeGreaterThan(0)
 
     const first = results.documents[0]
-    if (!first) {
-      throw new Error('Expected at least one document')
-    }
+    if (!first) throw new Error('Expected at least one document')
 
     expect(first.title).toBeDefined()
     expect(first.mdn_url).toBeDefined()

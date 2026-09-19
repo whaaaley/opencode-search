@@ -42,15 +42,15 @@ describe('runStrategies', () => {
   })
 
   it('falls through when a strategy throws', async () => {
-    const results = await runStrategies<string>([
-      {
-        name: 'a',
-        run: async () => {
-          throw new Error('boom')
-        },
+    const results = await runStrategies<string>([{
+      name: 'a',
+      run: async () => {
+        throw new Error('boom')
       },
-      { name: 'b', run: async () => ['result'] },
-    ])
+    }, {
+      name: 'b',
+      run: async () => ['result'],
+    }])
 
     expect(results).toEqual(['result'])
   })
@@ -72,22 +72,19 @@ describe('runStrategies', () => {
   it('hands each strategy a different user agent', async () => {
     const seen: string[] = []
 
-    await runStrategies([
-      {
-        name: 'a',
-        run: async (userAgent) => {
-          seen.push(userAgent)
-          return []
-        },
+    await runStrategies([{
+      name: 'a',
+      run: async (userAgent) => {
+        seen.push(userAgent)
+        return []
       },
-      {
-        name: 'b',
-        run: async (userAgent) => {
-          seen.push(userAgent)
-          return ['done']
-        },
+    }, {
+      name: 'b',
+      run: async (userAgent) => {
+        seen.push(userAgent)
+        return ['done']
       },
-    ])
+    }])
 
     expect(seen.length).toEqual(2)
     expect(seen[0] === seen[1]).toEqual(false)

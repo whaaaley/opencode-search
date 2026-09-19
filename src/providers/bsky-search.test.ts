@@ -8,9 +8,7 @@ describe('bskySearch', () => {
     expect(results.posts.length > 0).toEqual(true)
 
     const first = results.posts[0]
-    if (!first) {
-      throw new Error('expected at least one post')
-    }
+    if (!first) throw new Error('expected at least one post')
     expect(first.uri).toBeDefined()
     expect(first.author).toBeDefined()
     expect(first.record).toBeDefined()

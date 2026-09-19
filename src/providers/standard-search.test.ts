@@ -22,9 +22,7 @@ describe('standardSearch', () => {
     expect(results.documents.length > 0).toEqual(true)
 
     const first = results.documents[0]
-    if (!first) {
-      throw new Error('expected at least one document')
-    }
+    if (!first) throw new Error('expected at least one document')
     expect(first.title).toBeDefined()
     expect(first.url).toBeDefined()
   })
