@@ -1,9 +1,9 @@
-import type { Plugin } from '@opencode-ai/plugin/v2'
-import type * as Tool from '@opencode-ai/plugin/v2/tool'
+import type { Plugin } from '@opencode-ai/plugin'
+import type * as Tool from '@opencode-ai/plugin/promise/tool'
 
 type SendResultOptions = {
   context: Plugin.Context
-  sessionID: Tool.Context['sessionID']
+  sessionID: Tool.ToolContext['sessionID']
   text: string
 }
 

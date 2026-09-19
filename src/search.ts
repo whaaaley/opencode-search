@@ -1,22 +1,31 @@
-import type { Plugin } from '@opencode-ai/plugin/v2'
-import type * as Tool from '@opencode-ai/plugin/v2/tool'
+import type { Plugin } from '@opencode-ai/plugin'
+import type * as Tool from '@opencode-ai/plugin/promise/tool'
 import { formatResults } from './format.ts'
 import { sendResult } from './opencode/notify.ts'
+import { braveSearch } from './providers/brave-search.ts'
 import { bskySearch } from './providers/bsky-search.ts'
 import { ddgSearch } from './providers/ddg-search.ts'
-import { googleSearch } from './providers/ggl-search.ts'
+import { gnewsSearch } from './providers/gnews-search.ts'
 import { mdnSearch } from './providers/mdn-search.ts'
 import { standardSearch } from './providers/standard-search.ts'
 import { wikiSearch } from './providers/wiki-search.ts'
-import { renderBskyPost, renderDdgResult, renderGoogleResult, renderMdnDoc, renderStandardDoc, renderWikiPage } from './renderers.ts'
+import {
+  renderBskyPost,
+  renderDdgResult,
+  renderGnewsItem,
+  renderMdnDoc,
+  renderStandardDoc,
+  renderWebResult,
+  renderWikiPage,
+} from './renderers.ts'
 import { safeAsync } from './safe.ts'
 
-const postResult = async (context: Plugin.Context, ctx: Tool.Context, text: string) => {
+const postResult = async (context: Plugin.Context, ctx: Tool.ToolContext, text: string) => {
   await safeAsync(() => sendResult({ context, sessionID: ctx.sessionID, text }))
 }
 
-const textOutput = (structured: Record<string, unknown>, text: string): Tool.DynamicOutput => ({
-  structured,
+const textOutput = (output: Record<string, unknown>, text: string): Tool.Result => ({
+  output,
   content: [{ type: 'text', text }],
 })
 
@@ -47,10 +56,10 @@ const queryArg = {
   additionalProperties: false,
 } as const
 
-export const createDdgSearchTool = (context: Plugin.Context): Tool.DynamicDefinition => ({
+export const createDdgSearchTool = (context: Plugin.Context): Tool.Info => ({
   name: 'ddg-search',
   description: 'Search DuckDuckGo and return results as extracted text content',
-  jsonSchema: queryArg,
+  input: queryArg,
   async execute(input, ctx) {
     const query = stringField(input, 'query')
 
@@ -70,24 +79,21 @@ export const createDdgSearchTool = (context: Plugin.Context): Tool.DynamicDefini
   },
 })
 
-export const createGoogleSearchTool = (context: Plugin.Context): Tool.DynamicDefinition => ({
-  name: 'ggl-search',
-  description: [
-    'Search the web via Google, returning titles, URLs, and snippets.',
-    'Falls back to Brave or Mojeek when Google blocks non-JavaScript clients.',
-  ].join(' '),
-  jsonSchema: queryArg,
+export const createBraveSearchTool = (context: Plugin.Context): Tool.Info => ({
+  name: 'brave-search',
+  description: 'Search the web via Brave Search, returning titles, URLs, and snippets.',
+  input: queryArg,
   async execute(input, ctx) {
     const query = stringField(input, 'query')
 
-    const { data, error } = await safeAsync(() => googleSearch(query))
-    if (error) return textOutput({ error: error.message }, 'Google search failed: ' + error.message)
+    const { data, error } = await safeAsync(() => braveSearch(query))
+    if (error) return textOutput({ error: error.message }, 'Brave search failed: ' + error.message)
 
     const formatted = formatResults({
-      label: 'Google results',
+      label: 'Brave results',
       items: data,
       total: data.length,
-      renderItem: renderGoogleResult,
+      renderItem: renderWebResult,
     })
 
     await postResult(context, ctx, formatted)
@@ -96,13 +102,13 @@ export const createGoogleSearchTool = (context: Plugin.Context): Tool.DynamicDef
   },
 })
 
-export const createBskySearchTool = (context: Plugin.Context): Tool.DynamicDefinition => ({
+export const createBskySearchTool = (context: Plugin.Context): Tool.Info => ({
   name: 'bsky-search',
   description: [
     'Search Bluesky posts via the AT Protocol.',
     'Returns posts with author, text, and engagement counts.',
   ].join(' '),
-  jsonSchema: {
+  input: {
     type: 'object',
     properties: {
       query: { type: 'string', description: 'The search query' },
@@ -138,13 +144,13 @@ export const createBskySearchTool = (context: Plugin.Context): Tool.DynamicDefin
   },
 })
 
-export const createStandardSearchTool = (context: Plugin.Context): Tool.DynamicDefinition => ({
+export const createStandardSearchTool = (context: Plugin.Context): Tool.Info => ({
   name: 'standard-search',
   description: [
     'Search site.standard.document records on the AT Protocol.',
     'Returns blog posts and articles from the ATmosphere.',
   ].join(' '),
-  jsonSchema: {
+  input: {
     type: 'object',
     properties: {
       query: { type: 'string', description: 'The search query' },
@@ -181,10 +187,10 @@ export const createStandardSearchTool = (context: Plugin.Context): Tool.DynamicD
   },
 })
 
-export const createWikiSearchTool = (context: Plugin.Context): Tool.DynamicDefinition => ({
+export const createWikiSearchTool = (context: Plugin.Context): Tool.Info => ({
   name: 'wiki-search',
   description: 'Search Wikipedia articles. Returns page titles, descriptions, and excerpts.',
-  jsonSchema: {
+  input: {
     type: 'object',
     properties: {
       query: { type: 'string', description: 'The search query' },
@@ -218,10 +224,37 @@ export const createWikiSearchTool = (context: Plugin.Context): Tool.DynamicDefin
   },
 })
 
-export const createMdnSearchTool = (context: Plugin.Context): Tool.DynamicDefinition => ({
+export const createGnewsSearchTool = (context: Plugin.Context): Tool.Info => ({
+  name: 'gnews-search',
+  description: [
+    'Search Google News for recent articles, returning headlines, publishers, and dates.',
+    'News and tech media only — not general web search, and not documentation.',
+    'Links are news.google.com redirect URLs, not publisher URLs.',
+  ].join(' '),
+  input: queryArg,
+  async execute(input, ctx) {
+    const query = stringField(input, 'query')
+
+    const { data, error } = await safeAsync(() => gnewsSearch(query))
+    if (error) return textOutput({ error: error.message }, 'Google News search failed: ' + error.message)
+
+    const formatted = formatResults({
+      label: 'Google News results',
+      items: data,
+      total: data.length,
+      renderItem: renderGnewsItem,
+    })
+
+    await postResult(context, ctx, formatted)
+
+    return textOutput({ results: data, total: data.length }, 'Search results displayed in chat.')
+  },
+})
+
+export const createMdnSearchTool = (context: Plugin.Context): Tool.Info => ({
   name: 'mdn-search',
   description: 'Search MDN Web Docs. Returns documentation pages for web technologies.',
-  jsonSchema: {
+  input: {
     type: 'object',
     properties: {
       query: { type: 'string', description: 'The search query' },
@@ -256,10 +289,11 @@ export const createMdnSearchTool = (context: Plugin.Context): Tool.DynamicDefini
   },
 })
 
-export const createSearchTools = (context: Plugin.Context): Tool.DynamicDefinition[] => [
+export const createSearchTools = (context: Plugin.Context): Tool.Info[] => [
+  createBraveSearchTool(context),
   createBskySearchTool(context),
   createDdgSearchTool(context),
-  createGoogleSearchTool(context),
+  createGnewsSearchTool(context),
   createMdnSearchTool(context),
   createStandardSearchTool(context),
   createWikiSearchTool(context),
