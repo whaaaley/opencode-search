@@ -7,12 +7,18 @@ import { bskySearch } from './providers/bsky-search.ts'
 import { ddgSearch } from './providers/ddg-search.ts'
 import { gnewsSearch } from './providers/gnews-search.ts'
 import { mdnSearch } from './providers/mdn-search.ts'
+import { rfcSearch } from './providers/rfc-search.ts'
+import { w3cSearch } from './providers/w3c-search.ts'
+import { whatwgSearch } from './providers/whatwg-search.ts'
 import { wikiSearch } from './providers/wiki-search.ts'
 import {
   renderBskyPost,
   renderDdgResult,
   renderGnewsItem,
   renderMdnDoc,
+  renderRfc,
+  renderW3c,
+  renderWhatwg,
   renderWebResult,
   renderWikiPage,
 } from './renderers.ts'
@@ -254,11 +260,110 @@ export const createMdnSearchTool = (context: Plugin.Context): Tool.Info => ({
   },
 })
 
+export const createRfcSearchTool = (context: Plugin.Context): Tool.Info => ({
+  name: 'rfc_search',
+  description: 'Search IETF RFCs by title. Returns RFC number, title, date, and abstract.',
+  input: {
+    type: 'object',
+    properties: {
+      query: { type: 'string', description: 'The search query' },
+      limit: { type: 'number', description: 'Maximum number of results to return (default 20)' },
+    },
+    required: ['query'],
+    additionalProperties: false,
+  },
+  async execute(input, ctx) {
+    const query = stringField(input, 'query')
+    const limit = numberField(input, 'limit')
+
+    const { data, error } = await safeAsync(() => rfcSearch(query, limit))
+    if (error) return textOutput('RFC search failed: ' + error.message)
+
+    const formatted = formatResults({
+      label: 'RFC results',
+      items: data,
+      total: data.length,
+      renderItem: renderRfc,
+    })
+
+    await postResult(context, ctx, formatted)
+
+    return textOutput(formatted)
+  },
+})
+
+export const createW3cSearchTool = (context: Plugin.Context): Tool.Info => ({
+  name: 'w3c_search',
+  description: 'Search W3C specifications by title. Returns the spec title and its URL.',
+  input: {
+    type: 'object',
+    properties: {
+      query: { type: 'string', description: 'The search query' },
+      limit: { type: 'number', description: 'Maximum number of results to return (default 20)' },
+    },
+    required: ['query'],
+    additionalProperties: false,
+  },
+  async execute(input, ctx) {
+    const query = stringField(input, 'query')
+    const limit = numberField(input, 'limit')
+
+    const { data, error } = await safeAsync(() => w3cSearch(query, limit))
+    if (error) return textOutput('W3C search failed: ' + error.message)
+
+    const formatted = formatResults({
+      label: 'W3C results',
+      items: data,
+      total: data.length,
+      renderItem: renderW3c,
+    })
+
+    await postResult(context, ctx, formatted)
+
+    return textOutput(formatted)
+  },
+})
+
+export const createWhatwgSearchTool = (context: Plugin.Context): Tool.Info => ({
+  name: 'whatwg_search',
+  description: 'Search WHATWG living standards. Returns the standard name, URL, and description.',
+  input: {
+    type: 'object',
+    properties: {
+      query: { type: 'string', description: 'The search query' },
+      limit: { type: 'number', description: 'Maximum number of results to return (default 20)' },
+    },
+    required: ['query'],
+    additionalProperties: false,
+  },
+  async execute(input, ctx) {
+    const query = stringField(input, 'query')
+    const limit = numberField(input, 'limit')
+
+    const { data, error } = await safeAsync(() => whatwgSearch(query, limit))
+    if (error) return textOutput('WHATWG search failed: ' + error.message)
+
+    const formatted = formatResults({
+      label: 'WHATWG results',
+      items: data,
+      total: data.length,
+      renderItem: renderWhatwg,
+    })
+
+    await postResult(context, ctx, formatted)
+
+    return textOutput(formatted)
+  },
+})
+
 export const createSearchTools = (context: Plugin.Context): Tool.Info[] => [
   createBraveSearchTool(context),
   createBskySearchTool(context),
   createDdgSearchTool(context),
   createGnewsSearchTool(context),
   createMdnSearchTool(context),
+  createRfcSearchTool(context),
+  createW3cSearchTool(context),
+  createWhatwgSearchTool(context),
   createWikiSearchTool(context),
 ]

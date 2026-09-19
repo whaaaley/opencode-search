@@ -1,14 +1,14 @@
 # opencode-search
 
-An [OpenCode](https://opencode.ai) plugin that gives your agent access to DuckDuckGo, Brave, Google News, Wikipedia, Bluesky, and MDN Web Docs.
+An [OpenCode](https://opencode.ai) plugin that gives your agent access to DuckDuckGo, Brave, Google News, Wikipedia, Bluesky, MDN Web Docs, and the IETF, W3C and WHATWG specifications.
 
 <img width="776" height="393" alt="image" src="https://github.com/user-attachments/assets/7b9c0776-94a9-4184-9541-1f3bf8d9bcaa" />
 
 ## What this adds over OpenCode's built-in tools
 
-Six search tools that work without an API key. OpenCode 1 has no web search at all unless you use its own provider, and OpenCode 2's requires a key for Exa, Firecrawl, Parallel or Tavily.
+Nine search tools that work without an API key. OpenCode 1 has no web search at all unless you use its own provider, and OpenCode 2's requires a key for Exa, Firecrawl, Parallel or Tavily.
 
-Four of the tools search sources a general web search does not reach: Bluesky posts through the AT Protocol, Wikipedia and MDN through their own APIs, and Google News for what is being published now.
+Seven of the tools search sources a general web search does not reach: Bluesky posts through the AT Protocol, Wikipedia and MDN through their own APIs, Google News for what is being published now, and the IETF, W3C and WHATWG specification indexes directly.
 
 **Use at your own risk:** the DuckDuckGo and Brave providers scrape HTML nobody promised would stay parseable, so they can break without warning and may run against a service's terms. Results are unverified input.
 
@@ -100,6 +100,35 @@ Search MDN Web Docs. Returns documentation pages for web technologies with title
 | `limit`   | number | no       | Number of results to return        |
 | `page`    | number | no       | Page number for pagination         |
 
-## License
+### rfc_search
 
-MIT
+Search IETF RFCs by title via the [Datatracker API](https://datatracker.ietf.org/api/). Returns RFC number, title, date, and abstract. No API key required.
+
+| Parameter | Type   | Required | Description                        |
+| --------- | ------ | -------- | ---------------------------------- |
+| `query`   | string | yes      |                                    |
+| `limit`   | number | no       | Number of results (default 20)     |
+
+Matches on title only, so a query is a phrase from the RFC's name rather than its body.
+
+### w3c_search
+
+Search W3C specifications by title via the [W3C API](https://api.w3.org/). Returns the spec title and URL. No API key required.
+
+| Parameter | Type   | Required | Description                        |
+| --------- | ------ | -------- | ---------------------------------- |
+| `query`   | string | yes      |                                    |
+| `limit`   | number | no       | Number of results (default 20)     |
+
+The W3C API accepts a `q` parameter and ignores it — a real query and a nonsense string both return all 1713 specifications. So the full index is fetched, two pages of 1000, and filtered here. Titles only; the API exposes no abstracts.
+
+### whatwg_search
+
+Search WHATWG living standards. Returns the standard name, URL, and description. No API key required.
+
+| Parameter | Type   | Required | Description                        |
+| --------- | ------ | -------- | ---------------------------------- |
+| `query`   | string | yes      |                                    |
+| `limit`   | number | no       | Number of results (default 20)     |
+
+WHATWG publishes its whole index as one small JSON file and offers no search endpoint, so matching happens here across names and descriptions. There are only 27 standards, so expect few results.
