@@ -5,7 +5,8 @@ import { detectBlock, nextUserAgent } from '../strategies.ts'
 const BRAVE_URL = 'https://search.brave.com/search'
 
 // A challenged request comes back as HTTP 200 carrying a CAPTCHA page, so the status is not the
-// signal. Detecting it keeps a block from being reported as an empty result set.
+// signal.
+// Detecting it keeps a block from being reported as an empty result set.
 // These must be phrases that only appear on the challenge page: a bare 'captcha' matches the word in
 // a normal results page's own markup and fails every search.
 const BLOCK_MARKERS = ['Verifying you are human', 'challenge-error']

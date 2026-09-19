@@ -1,8 +1,9 @@
 import { JSDOM, VirtualConsole } from 'jsdom'
 import { baseHeaders, BlockedError } from './strategies.ts'
 
-// Shared by every HTML-scraping provider. Each engine has its own module and its own tool, so these
-// two are the only things they have in common.
+// Shared by every HTML-scraping provider.
+// Each engine has its own module and its own tool, so these two are the only things they have in
+// common.
 export type SearchResult = {
   title: string
   url: string
@@ -21,9 +22,10 @@ export const makeDom = (html: string, url: string): Document => {
 export const fetchHtml = async (url: string, userAgent: string): Promise<string> => {
   const res = await fetch(url, { headers: baseHeaders(userAgent) })
 
-  // 403 and 429 are how an engine says it has decided this client is a bot, and the body usually says
-  // so in a sentence worth passing on — Mojeek returns 'your network appears to be sending automated
-  // queries'. A bare status code reads like a transient server fault and invites a pointless retry.
+  // 403 and 429 are how an engine says it has decided this client is a bot, and the body usually
+  // says so in a sentence worth passing on — Mojeek returns 'your network appears to be sending
+  // automated queries'.
+  // A bare status code reads like a transient server fault and invites a pointless retry.
   if (res.status === 403 || res.status === 429) {
     const body = await res.text().catch(() => '')
     // Drop the status heading, which these pages repeat in <title> and <h1> before saying anything

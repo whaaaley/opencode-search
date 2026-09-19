@@ -1,13 +1,16 @@
 import * as cache from '../cache.ts'
 import { baseHeaders } from '../strategies.ts'
 
-// Google News' RSS feed, which is a different serving stack from google.com/search and still answers
-// a plain HTTP request. The web search endpoint does not: it returns a JavaScript wall to every
-// non-browser client regardless of TLS fingerprint, headers, cookies or region, so the old
-// ggl-search provider was removed rather than repaired.
+// Google News' RSS feed, which is a different serving stack from google.com/search and still
+// answers a plain HTTP request.
+// The web search endpoint does not: it returns a JavaScript wall to every non-browser client
+// regardless of TLS fingerprint, headers, cookies or region, so the old ggl-search provider was
+// removed rather than repaired.
 //
-// This is NOT a general web search. The index is news and tech-media weighted, so documentation and
-// reference pages are largely absent. It is good for what is being written about a subject now.
+// This is NOT a general web search.
+// The index is news and tech-media weighted, so documentation and reference pages are largely
+// absent.
+// It is good for what is being written about a subject now.
 const GNEWS_URL = 'https://news.google.com/rss/search'
 
 export type GnewsResult = {
@@ -51,10 +54,11 @@ export const gnewsSearch = async (query: string): Promise<GnewsResult[]> => {
   const xml = await res.text()
   const results: GnewsResult[] = []
 
-  // Parsed with regex rather than jsdom on purpose. jsdom parses this feed as HTML, where <link> is a
-  // void element: it closes immediately, its text becomes a sibling node, and every item reads as
-  // having no URL. The feed is flat, machine-generated XML, so matching the tags directly is both
-  // simpler and more honest than relying on where an HTML parser happens to leave the text.
+  // Parsed with regex rather than jsdom on purpose.
+  // jsdom parses this feed as HTML, where <link> is a void element: it closes immediately, its text
+  // becomes a sibling node, and every item reads as having no URL.
+  // The feed is flat, machine-generated XML, so matching the tags directly is both simpler and more
+  // honest than relying on where an HTML parser happens to leave the text.
   for (const match of xml.matchAll(/<item>(.*?)<\/item>/gs)) {
     const item = match[1] ?? ''
 
@@ -66,7 +70,8 @@ export const gnewsSearch = async (query: string): Promise<GnewsResult[]> => {
     const source = tag('source')
     const title = stripSource(tag('title'), source)
     // The feed's <link> is a news.google.com redirector that only resolves in a browser, so it is
-    // reported as-is. Claiming to return the publisher's URL would be a lie the agent cannot check.
+    // reported as-is.
+    // Claiming to return the publisher's URL would be a lie the agent cannot check.
     const url = tag('link')
 
     if (title && url) {
