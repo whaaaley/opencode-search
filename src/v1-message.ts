@@ -1,6 +1,4 @@
-// Shown when this build is loaded by OpenCode 1, which does not ship '@opencode/plugin' at all.
-// Without it the user sees a module resolution error naming a package they never installed, which
-// says nothing about versions and nothing about what to do next.
+// Shown when OpenCode 1 loads this build, where the alternative is a module resolution error.
 export const V1_MESSAGE = [
   'opencode-search 1.x requires OpenCode 2 and cannot load under OpenCode 1.',
   '',

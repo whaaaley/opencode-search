@@ -1,16 +1,7 @@
 import * as cache from '../cache.ts'
 import { baseHeaders } from '../strategies.ts'
 
-// Google News' RSS feed, which is a different serving stack from google.com/search and still
-// answers a plain HTTP request.
-// The web search endpoint does not: it returns a JavaScript wall to every non-browser client
-// regardless of TLS fingerprint, headers, cookies or region, so the old ggl-search provider was
-// removed rather than repaired.
-//
-// This is NOT a general web search.
-// The index is news and tech-media weighted, so documentation and reference pages are largely
-// absent.
-// It is good for what is being written about a subject now.
+// Not a general web search: the index is news-weighted and reference pages are largely absent.
 const GNEWS_URL = 'https://news.google.com/rss/search'
 
 export type GnewsResult = {
@@ -54,11 +45,8 @@ export const gnewsSearch = async (query: string): Promise<GnewsResult[]> => {
   const xml = await res.text()
   const results: GnewsResult[] = []
 
-  // Parsed with regex rather than jsdom on purpose.
-  // jsdom parses this feed as HTML, where <link> is a void element: it closes immediately, its text
-  // becomes a sibling node, and every item reads as having no URL.
-  // The feed is flat, machine-generated XML, so matching the tags directly is both simpler and more
-  // honest than relying on where an HTML parser happens to leave the text.
+  // Matches one <item> element and captures its body.
+  // Not jsdom: it treats <link> as a void element, so every item parses as having no URL.
   for (const match of xml.matchAll(/<item>(.*?)<\/item>/gs)) {
     const item = match[1] ?? ''
 
@@ -69,9 +57,7 @@ export const gnewsSearch = async (query: string): Promise<GnewsResult[]> => {
 
     const source = tag('source')
     const title = stripSource(tag('title'), source)
-    // The feed's <link> is a news.google.com redirector that only resolves in a browser, so it is
-    // reported as-is.
-    // Claiming to return the publisher's URL would be a lie the agent cannot check.
+    // A news.google.com redirector that only resolves in a browser, reported as-is.
     const url = tag('link')
 
     if (title && url) {
