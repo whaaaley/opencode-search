@@ -31,11 +31,14 @@ const stripSource = (title: string, source: string): string => {
   return title.endsWith(suffix) ? title.slice(0, -suffix.length) : title
 }
 
-export const gnewsSearch = async (query: string): Promise<GnewsResult[]> => {
+// The feed always returns about 100 items, which is ~10k tokens of context for one call.
+const DEFAULT_LIMIT = 20
+
+export const gnewsSearch = async (query: string, limit = DEFAULT_LIMIT): Promise<GnewsResult[]> => {
   const cacheKey = 'gnews:' + query
 
   const cached = await cache.get<GnewsResult[]>(cacheKey)
-  if (cached) return cached
+  if (cached) return cached.slice(0, limit)
 
   const params = new URLSearchParams({ q: query, hl: 'en-US', gl: 'US', ceid: 'US:en' })
   const res = await fetch(GNEWS_URL + '?' + params, { headers: baseHeaders('') })
@@ -65,5 +68,5 @@ export const gnewsSearch = async (query: string): Promise<GnewsResult[]> => {
 
   await cache.set(cacheKey, results)
 
-  return results
+  return results.slice(0, limit)
 }

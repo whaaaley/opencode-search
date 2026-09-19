@@ -231,11 +231,20 @@ export const createGnewsSearchTool = (context: Plugin.Context): Tool.Info => ({
     'News and tech media only — not general web search, and not documentation.',
     'Links are news.google.com redirect URLs, not publisher URLs.',
   ].join(' '),
-  input: queryArg,
+  input: {
+    type: 'object',
+    properties: {
+      query: { type: 'string', description: 'The search query' },
+      limit: { type: 'number', description: 'Maximum number of results to return (default 20)' },
+    },
+    required: ['query'],
+    additionalProperties: false,
+  },
   async execute(input, ctx) {
     const query = stringField(input, 'query')
+    const limit = numberField(input, 'limit')
 
-    const { data, error } = await safeAsync(() => gnewsSearch(query))
+    const { data, error } = await safeAsync(() => gnewsSearch(query, limit))
     if (error) return textOutput({ error: error.message }, 'Google News search failed: ' + error.message)
 
     const formatted = formatResults({
