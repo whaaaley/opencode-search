@@ -9,9 +9,7 @@ export const formatHeader = (label: string, options: PaginationOptions): string 
   const { total, count, limit } = options
   const offset = options.offset ?? 0
 
-  if (count === 0) {
-    return label + ' (0 results)'
-  }
+  if (count === 0) return label + ' (0 results)'
 
   const start = offset + 1
   const end = offset + count
@@ -64,9 +62,7 @@ export const formatResults = <T>(options: FormatResultsOptions<T>): string => {
 
   const header = formatHeader(label, { total, count: items.length, limit, offset })
 
-  if (items.length === 0) {
-    return header
-  }
+  if (items.length === 0) return header
 
   const body = items
     .map((item, i) => renderItem(item, i))

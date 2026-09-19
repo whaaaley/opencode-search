@@ -1,16 +1,18 @@
 {
   "name": "opencode-search",
-  "version": "0.0.9",
-  "description": "OpenCode plugin that provides web search tools using DuckDuckGo, Google, Wikipedia, Bluesky, Standard.site, and MDN Web Docs.",
+  "version": "1.0.0-next.0",
+  "description": "OpenCode plugin that provides web search tools using DuckDuckGo, Brave, Google News, Wikipedia, Bluesky, Standard.site, and MDN Web Docs.",
   "keywords": [
     "opencode",
     "opencode-plugin",
     "plugin",
     "search",
     "web-search",
-    "wikipedia",
     "duckduckgo",
-    "google",
+    "brave",
+    "google-news",
+    "wikipedia",
+    "mdn",
     "bluesky",
     "atproto",
     "standard-site"
@@ -28,8 +30,8 @@
   "type": "module",
   "exports": {
     ".": {
-      "import": "./dist/search.js",
-      "types": "./dist/search.d.ts"
+      "types": "./dist/search.d.ts",
+      "import": "./dist/search.js"
     }
   },
   "main": "./dist/search.js",
@@ -37,27 +39,32 @@
   "files": [
     "dist/",
     "README.md",
+    "REMOVED.md",
     "LICENSE"
   ],
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rm -rf dist",
-    "fmt": "bun run dprint fmt",
     "prepublishOnly": "npm run build",
-    "test": "bun test"
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@mozilla/readability": "0.5.0",
     "jsdom": "26.1.0"
   },
   "devDependencies": {
-    "@opencode-ai/plugin": "1.1.12",
+    "@opencode/plugin": "2.0.10",
     "@types/bun": "1.3.9",
     "@types/jsdom": "27.0.0",
-    "dprint": "latest",
     "typescript": "5.9.3"
   },
   "peerDependencies": {
-    "@opencode-ai/plugin": ">=0.13.7"
+    "@opencode/plugin": ">=2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@opencode/plugin": {
+      "optional": true
+    }
   }
 }

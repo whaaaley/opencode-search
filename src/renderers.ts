@@ -2,7 +2,7 @@ import { formatDate, formatDateTime } from './format.ts'
 import { normalizeBlurb } from './normalize-blurb.ts'
 import type { BskyPost } from './providers/bsky-search.ts'
 import type { DdgResult } from './providers/ddg-search.ts'
-import type { GoogleResult } from './providers/ggl-search.ts'
+import type { GnewsResult } from './providers/gnews-search.ts'
 import type { MdnDocument } from './providers/mdn-search.ts'
 import type { StandardDocument } from './providers/standard-search.ts'
 import type { WikiPage } from './providers/wiki-search.ts'
@@ -13,10 +13,13 @@ export const renderDdgResult = (result: DdgResult, index: number): string => {
    ${normalizeBlurb(result.abstract)}`
 }
 
-export const renderGoogleResult = (result: GoogleResult, index: number): string => {
+// Brave and DuckDuckGo return the same title/url/abstract shape.
+export const renderWebResult = renderDdgResult
+
+export const renderGnewsItem = (result: GnewsResult, index: number): string => {
   return `${index + 1}. ${result.title}
-   ${result.url}
-   ${normalizeBlurb(result.abstract)}`
+   ${result.source}${result.date ? ' — ' + formatDate(result.date) : ''}
+   ${result.url}`
 }
 
 export const renderBskyPost = (post: BskyPost, index: number): string => (

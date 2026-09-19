@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'bun:test'
-import { renderBskyPost, renderDdgResult, renderGoogleResult, renderMdnDoc, renderStandardDoc, renderWikiPage } from './renderers.ts'
+import {
+  renderBskyPost,
+  renderDdgResult,
+  renderGnewsItem,
+  renderMdnDoc,
+  renderStandardDoc,
+  renderWebResult,
+  renderWikiPage,
+} from './renderers.ts'
 
 describe('renderDdgResult', () => {
   it('returns three lines: title, url, abstract', () => {
@@ -25,10 +33,10 @@ describe('renderDdgResult', () => {
   })
 })
 
-describe('renderGoogleResult', () => {
+describe('renderWebResult', () => {
   it('returns three lines: title, url, abstract', () => {
     const result = { title: 'TypeScript', url: 'https://typescriptlang.org', abstract: 'A typed superset of JavaScript' }
-    const lines = renderGoogleResult(result, 0).split('\n')
+    const lines = renderWebResult(result, 0).split('\n')
     expect(lines).toHaveLength(3)
     expect(lines[0]).toContain('1. TypeScript')
     expect(lines[1]).toContain('https://typescriptlang.org')
@@ -37,8 +45,33 @@ describe('renderGoogleResult', () => {
 
   it('uses 1-based index', () => {
     const result = { title: 'Test', url: 'https://example.com', abstract: 'Abstract' }
-    const lines = renderGoogleResult(result, 4).split('\n')
+    const lines = renderWebResult(result, 4).split('\n')
     expect(lines[0]).toStartWith('5. ')
+  })
+})
+
+describe('renderGnewsItem', () => {
+  const item = {
+    title: 'Rust 2.0 announced',
+    url: 'https://news.google.com/rss/articles/CBMiabc',
+    abstract: '',
+    source: 'The Register',
+    date: 'Fri, 18 Sep 2026 16:55:50 GMT',
+  }
+
+  it('returns three lines: title, source and date, url', () => {
+    const lines = renderGnewsItem(item, 0).split('\n')
+
+    expect(lines).toHaveLength(3)
+    expect(lines[0]).toContain('1. Rust 2.0 announced')
+    expect(lines[1]).toContain('The Register')
+    expect(lines[2]).toContain('news.google.com')
+  })
+
+  it('omits the separator when there is no date', () => {
+    const lines = renderGnewsItem({ ...item, date: '' }, 0).split('\n')
+
+    expect(lines[1]).not.toContain('—')
   })
 })
 

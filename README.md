@@ -1,20 +1,42 @@
 # opencode-search
 
-An [OpenCode](https://opencode.ai) plugin that gives your agent access to DuckDuckGo, Google, Wikipedia, Bluesky, [standard.site](https://standard.site), and MDN Web Docs.
+An [OpenCode](https://opencode.ai) plugin that gives your agent access to DuckDuckGo, Brave, Google News, Wikipedia, Bluesky, [standard.site](https://standard.site), and MDN Web Docs.
 
 <img width="786" height="377" alt="image" src="https://github.com/user-attachments/assets/9ad19ade-402a-4cc1-9882-a33d2a8e4d42" />
 
+## What this adds over OpenCode's built-in tools
+
+Seven search tools that work without an API key. OpenCode 1 has no web search at all unless you use its own provider, and OpenCode 2's requires a key for Exa, Firecrawl, Parallel or Tavily.
+
+Five of the tools search sources a general web search does not reach: Bluesky posts and standard.site records through the AT Protocol, Wikipedia and MDN through their own APIs, and Google News for what is being published now.
+
+**Use at your own risk:** the DuckDuckGo and Brave providers scrape HTML nobody promised would stay parseable, so they can break without warning and may run against a service's terms. Results are unverified input.
+
+Google web search and Mojeek were removed — see [REMOVED.md](REMOVED.md) for what was tested and why.
+
 ## Quick Start
+
+### OpenCode 2
 
 Add to your `opencode.json`:
 
 ```json
 {
-  "plugin": ["opencode-search"]
+  "plugins": ["opencode-search"]
 }
 ```
 
 Restart OpenCode. The plugin will be installed automatically.
+
+### OpenCode 1
+
+```json
+{
+  "plugin": ["opencode-search@0.0.9"]
+}
+```
+
+**0.0.9 is the last release for OpenCode 1 and will not be updated.** New providers and fixes land on 1.x, which requires OpenCode 2. Pin the version rather than tracking latest.
 
 ## Tools
 
@@ -29,16 +51,25 @@ Search the web using DuckDuckGo. Returns structured results with title, URL, and
 Uses DuckDuckGo's HTML endpoint with POST form parameters to avoid CAPTCHAs.
 Results are parsed from the HTML response into structured title/URL/abstract triples.
 
-### ggl-search
+### brave-search
 
-Search the web using Google. Returns structured results with title, URL, and snippet.
+Search the web using Brave Search. Returns structured results with title, URL, and snippet.
 
 | Parameter | Type   | Required |
 | --------- | ------ | -------- |
 | `query`   | string | yes      |
 
-Uses Google's HTML search with cookie replay to avoid blocks, derived from [googler](https://github.com/jarun/googler).
-Google aggressively blocks non-JS clients, so this tool may return empty results depending on your network environment.
+Brave serves server-rendered HTML, so it is the most reliable general web provider here.
+
+### gnews-search
+
+Search Google News for recent articles. Returns headline, publisher, and publication date.
+
+| Parameter | Type   | Required |
+| --------- | ------ | -------- |
+| `query`   | string | yes      |
+
+**News and tech media only — not general web search, and not documentation.** It queries the Google News RSS feed, which is a different service from Google web search and still answers plain HTTP requests. Links are `news.google.com` redirect URLs rather than publisher URLs; they resolve only in a browser, so they are reported as-is.
 
 ### bsky-search
 
@@ -61,6 +92,8 @@ Search [standard.site](https://standard.site) document records on the AT Protoco
 | `offset`  | number | no       | Number of results to skip          |
 
 standard.site is a publishing platform built on the AT Protocol where content is stored in a user's personal data repository. Unlike traditional websites that require crawlers and indexing pipelines to be discoverable, content published on standard.site is structured, portable, and directly queryable through the AT Protocol.
+
+**Currently unavailable.** The appview this tool queries, `standard-search.octet-stream.net`, refuses connections, and no replacement endpoint is published on standard.site or in its docs. The provider is left in place unchanged; its live test soft-skips while the host is unreachable, so the suite stays green without masking parser regressions.
 
 ### wiki-search
 

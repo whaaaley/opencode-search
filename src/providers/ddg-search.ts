@@ -1,8 +1,12 @@
 import { JSDOM, VirtualConsole } from 'jsdom'
 import * as cache from '../cache.ts'
+import { baseHeaders, detectBlock, runStrategies } from '../strategies.ts'
 
-const DDG_URL = 'https://html.duckduckgo.com/html/'
-const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+// The lite frontend is the fallback when the html frontend is blocked or empty
+const DDG_HTML_URL = 'https://html.duckduckgo.com/html/'
+const DDG_LITE_URL = 'https://lite.duckduckgo.com/lite/'
+
+const BLOCK_MARKERS = ['anomaly-modal', 'Please try again']
 
 export type DdgResult = {
   title: string
@@ -10,31 +14,35 @@ export type DdgResult = {
   abstract: string
 }
 
-export const ddgSearch = async (query: string): Promise<DdgResult[]> => {
-  const cacheKey = 'ddg:' + query
+const searchParams = (query: string): URLSearchParams => (
+  new URLSearchParams({
+    q: query,
+    b: '',
+    kf: '-1',
+    kh: '1',
+    kl: 'us-en',
+    kp: '1',
+    k1: '-1',
+  })
+)
 
-  const cached = await cache.get<DdgResult[]>(cacheKey)
-  if (cached) {
-    return cached
-  }
+const parseDom = (html: string, url: string): Document => {
+  const virtualConsole = new VirtualConsole()
+  virtualConsole.on('jsdomError', () => {
+    // Silently ignore JSDOM errors
+  })
 
-  const response = await fetch(DDG_URL, {
+  return new JSDOM(html, { url, virtualConsole }).window.document
+}
+
+const fetchDdg = async (url: string, query: string, userAgent: string): Promise<string> => {
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
-      'User-Agent': USER_AGENT,
-      'Accept-Encoding': 'gzip',
+      ...baseHeaders(userAgent),
       'Content-Type': 'application/x-www-form-urlencoded',
-      'DNT': '1',
     },
-    body: new URLSearchParams({
-      q: query,
-      b: '',
-      kf: '-1',
-      kh: '1',
-      kl: 'us-en',
-      kp: '1',
-      k1: '-1',
-    }),
+    body: searchParams(query),
   })
 
   if (!response.ok) {
@@ -42,19 +50,13 @@ export const ddgSearch = async (query: string): Promise<DdgResult[]> => {
   }
 
   const html = await response.text()
+  detectBlock('DuckDuckGo', html, BLOCK_MARKERS)
 
-  // Detect CAPTCHA
-  if (html.includes('anomaly-modal') || html.includes('Please try again')) {
-    throw new Error('DuckDuckGo returned a CAPTCHA. Try again later.')
-  }
+  return html
+}
 
-  const virtualConsole = new VirtualConsole()
-  virtualConsole.on('jsdomError', () => {
-    // Silently ignore JSDOM errors
-  })
-
-  const dom = new JSDOM(html, { url: DDG_URL, virtualConsole })
-  const doc = dom.window.document
+const parseHtmlResults = (html: string): DdgResult[] => {
+  const doc = parseDom(html, DDG_HTML_URL)
 
   const links = doc.querySelectorAll('.result__a')
   const snippets = doc.querySelectorAll('.result__snippet')
@@ -75,6 +77,54 @@ export const ddgSearch = async (query: string): Promise<DdgResult[]> => {
       results.push({ title, url: href, abstract })
     }
   }
+
+  return results
+}
+
+const parseLiteResults = (html: string): DdgResult[] => {
+  const doc = parseDom(html, DDG_LITE_URL)
+
+  const links = doc.querySelectorAll('a.result-link')
+  const snippets = doc.querySelectorAll('td.result-snippet')
+
+  const results: DdgResult[] = []
+
+  for (let i = 0; i < links.length; i++) {
+    const link = links[i]
+    if (!link) {
+      continue
+    }
+
+    const title = link.textContent?.trim() ?? ''
+    const href = link.getAttribute('href') ?? ''
+    const abstract = snippets[i]?.textContent?.trim() ?? ''
+
+    if (title && href) {
+      results.push({ title, url: href, abstract })
+    }
+  }
+
+  return results
+}
+
+export const ddgSearch = async (query: string): Promise<DdgResult[]> => {
+  const cacheKey = 'ddg:' + query
+
+  const cached = await cache.get<DdgResult[]>(cacheKey)
+  if (cached) {
+    return cached
+  }
+
+  const results = await runStrategies([
+    {
+      name: 'ddg-html',
+      run: async (userAgent) => parseHtmlResults(await fetchDdg(DDG_HTML_URL, query, userAgent)),
+    },
+    {
+      name: 'ddg-lite',
+      run: async (userAgent) => parseLiteResults(await fetchDdg(DDG_LITE_URL, query, userAgent)),
+    },
+  ])
 
   await cache.set(cacheKey, results)
 
