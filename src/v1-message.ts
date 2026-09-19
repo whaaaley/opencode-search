@@ -1,6 +1,6 @@
-// Shown when this build is loaded by OpenCode 1, whose plugin package has no '@opencode-ai/plugin/v2'
-// subpath. Without it the user sees ERR_PACKAGE_PATH_NOT_EXPORTED naming an internal path, which says
-// nothing about versions and nothing about what to do next.
+// Shown when this build is loaded by OpenCode 1, which does not ship '@opencode/plugin' at all.
+// Without it the user sees a module resolution error naming a package they never installed, which
+// says nothing about versions and nothing about what to do next.
 export const V1_MESSAGE = [
   'opencode-search 1.x requires OpenCode 2 and cannot load under OpenCode 1.',
   '',

@@ -10,6 +10,6 @@
     "instructions/*.md"
   ],
   "plugins": [
-    "./search.ts"
+    "."
   ]
 }

@@ -1,5 +1,5 @@
-import type { Plugin } from '@opencode-ai/plugin'
-import type * as Tool from '@opencode-ai/plugin/promise/tool'
+import type { Plugin } from '@opencode/plugin'
+import type * as Tool from '@opencode/plugin/promise/tool'
 import { formatResults } from './format.ts'
 import { sendResult } from './opencode/notify.ts'
 import { braveSearch } from './providers/brave-search.ts'
