@@ -2,7 +2,7 @@
 
 An [OpenCode](https://opencode.ai) plugin that gives your agent access to DuckDuckGo, Brave, Google News, Wikipedia, Bluesky, [standard.site](https://standard.site), and MDN Web Docs.
 
-<img width="786" height="377" alt="image" src="https://github.com/user-attachments/assets/9ad19ade-402a-4cc1-9882-a33d2a8e4d42" />
+<img width="776" height="393" alt="image" src="https://github.com/user-attachments/assets/7b9c0776-94a9-4184-9541-1f3bf8d9bcaa" />
 
 ## What this adds over OpenCode's built-in tools
 
