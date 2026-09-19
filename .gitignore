@@ -6,3 +6,4 @@ dist/
 .cache
 .opencode/
 bun.lock
+notes/
