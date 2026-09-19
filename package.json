@@ -1,6 +1,6 @@
 {
   "name": "opencode-search",
-  "version": "1.0.0-next.0",
+  "version": "1.0.0-next.1",
   "description": "OpenCode plugin that provides web search tools using DuckDuckGo, Brave, Google News, Wikipedia, Bluesky, Standard.site, and MDN Web Docs.",
   "keywords": [
     "opencode",
@@ -50,8 +50,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@mozilla/readability": "0.5.0",
-    "jsdom": "26.1.0"
+    "jsdom": "26.1.0",
+    "zod": "4.1.8"
   },
   "devDependencies": {
     "@opencode/plugin": "2.0.10",
