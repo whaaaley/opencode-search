@@ -4,7 +4,6 @@ import {
   renderDdgResult,
   renderGnewsItem,
   renderMdnDoc,
-  renderStandardDoc,
   renderWebResult,
   renderWikiPage,
 } from './renderers.ts'
@@ -129,69 +128,6 @@ describe('renderBskyPost', () => {
 
   it('indents second and third lines', () => {
     const lines = renderBskyPost(post, 0).split('\n')
-    expect(lines[1]).toStartWith('   ')
-    expect(lines[2]).toStartWith('   ')
-  })
-})
-
-describe('renderStandardDoc', () => {
-  it('includes date in title line when date is present', () => {
-    const doc = {
-      title: 'My Article',
-      url: 'https://example.com/article',
-      date: '2025-03-10',
-      snippet: 'Article snippet text',
-    }
-    const lines = renderStandardDoc(doc, 0).split('\n')
-    expect(lines[0]).toContain('1. My Article')
-    expect(lines[0]).toContain('Mar')
-    expect(lines[0]).toContain('2025')
-  })
-
-  it('omits date from title line when date is empty', () => {
-    const doc = {
-      title: 'No Date Article',
-      url: 'https://example.com/nodate',
-      date: '',
-      snippet: 'Snippet',
-    }
-    const lines = renderStandardDoc(doc, 0).split('\n')
-    expect(lines[0]).toBe('1. No Date Article')
-    expect(lines[0]).not.toContain('(')
-  })
-
-  it('returns three lines: title, url, snippet', () => {
-    const doc = {
-      title: 'Title',
-      url: 'https://example.com',
-      date: '',
-      snippet: 'Snippet text',
-    }
-    const lines = renderStandardDoc(doc, 0).split('\n')
-    expect(lines).toHaveLength(3)
-    expect(lines[1]).toContain('https://example.com')
-    expect(lines[2]).toContain('Snippet text')
-  })
-
-  it('uses 1-based index', () => {
-    const doc = {
-      title: 'Title',
-      url: 'https://example.com',
-      date: '',
-      snippet: 'Snippet',
-    }
-    const lines = renderStandardDoc(doc, 9).split('\n')
-    expect(lines[0]).toStartWith('10. ')
-  })
-
-  it('indents url and snippet lines', () => {
-    const doc = {
-      title: 'Title',
-      url: 'https://example.com',
-      date: '',
-      snippet: 'Snippet',
-    }
-    const lines = renderStandardDoc(doc, 0).split('\n')
     expect(lines[1]).toStartWith('   ')
     expect(lines[2]).toStartWith('   ')
   })

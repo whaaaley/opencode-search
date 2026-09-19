@@ -4,7 +4,6 @@ import type { BskyPost } from './providers/bsky-search.ts'
 import type { DdgResult } from './providers/ddg-search.ts'
 import type { GnewsResult } from './providers/gnews-search.ts'
 import type { MdnDocument } from './providers/mdn-search.ts'
-import type { StandardDocument } from './providers/standard-search.ts'
 import type { WikiPage } from './providers/wiki-search.ts'
 
 export const renderDdgResult = (result: DdgResult, index: number): string => {
@@ -28,14 +27,6 @@ export const renderBskyPost = (post: BskyPost, index: number): string => (
    Likes: ${post.likeCount}  Reposts: ${post.repostCount}  Replies: ${post.replyCount}`
 )
 
-export const renderStandardDoc = (doc: StandardDocument, index: number): string => {
-  const title = doc.date
-    ? `${index + 1}. ${doc.title} (${formatDate(doc.date)})`
-    : `${index + 1}. ${doc.title}`
-  return `${title}
-   ${doc.url}
-   ${normalizeBlurb(doc.snippet)}`
-}
 
 export const renderWikiPage = (page: WikiPage, index: number): string => {
   const desc = page.description ? `\n   ${normalizeBlurb(page.description)}` : ''

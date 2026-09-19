@@ -7,14 +7,12 @@ import { bskySearch } from './providers/bsky-search.ts'
 import { ddgSearch } from './providers/ddg-search.ts'
 import { gnewsSearch } from './providers/gnews-search.ts'
 import { mdnSearch } from './providers/mdn-search.ts'
-import { standardSearch } from './providers/standard-search.ts'
 import { wikiSearch } from './providers/wiki-search.ts'
 import {
   renderBskyPost,
   renderDdgResult,
   renderGnewsItem,
   renderMdnDoc,
-  renderStandardDoc,
   renderWebResult,
   renderWikiPage,
 } from './renderers.ts'
@@ -145,49 +143,6 @@ export const createBskySearchTool = (context: Plugin.Context): Tool.Info => ({
   },
 })
 
-export const createStandardSearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'standard_search',
-  description: [
-    'Search site.standard.document records on the AT Protocol.',
-    'Returns blog posts and articles from the ATmosphere.',
-  ].join(' '),
-  input: {
-    type: 'object',
-    properties: {
-      query: { type: 'string', description: 'The search query' },
-      limit: { type: 'number', description: 'Maximum number of results to return' },
-      offset: { type: 'number', description: 'Number of results to skip' },
-    },
-    required: ['query'],
-    additionalProperties: false,
-  },
-  async execute(input, ctx) {
-    const query = stringField(input, 'query')
-    const limit = numberField(input, 'limit')
-    const offset = numberField(input, 'offset')
-
-    const { data, error } = await safeAsync(() => (
-      standardSearch({ query, limit, offset })
-    ))
-
-    if (error) return textOutput('Standard.site search failed: ' + error.message)
-
-    const total = Number(data.totalResults) || data.documents.length
-    const formatted = formatResults({
-      label: 'Standard.site results',
-      items: data.documents,
-      total,
-      limit,
-      offset,
-      renderItem: renderStandardDoc,
-    })
-
-    await postResult(context, ctx, formatted)
-
-    return textOutput(formatted)
-  },
-})
-
 export const createWikiSearchTool = (context: Plugin.Context): Tool.Info => ({
   name: 'wiki_search',
   description: 'Search Wikipedia articles. Returns page titles, descriptions, and excerpts.',
@@ -305,6 +260,5 @@ export const createSearchTools = (context: Plugin.Context): Tool.Info[] => [
   createDdgSearchTool(context),
   createGnewsSearchTool(context),
   createMdnSearchTool(context),
-  createStandardSearchTool(context),
   createWikiSearchTool(context),
 ]

@@ -1,18 +1,18 @@
 # opencode-search
 
-An [OpenCode](https://opencode.ai) plugin that gives your agent access to DuckDuckGo, Brave, Google News, Wikipedia, Bluesky, [standard.site](https://standard.site), and MDN Web Docs.
+An [OpenCode](https://opencode.ai) plugin that gives your agent access to DuckDuckGo, Brave, Google News, Wikipedia, Bluesky, and MDN Web Docs.
 
 <img width="776" height="393" alt="image" src="https://github.com/user-attachments/assets/7b9c0776-94a9-4184-9541-1f3bf8d9bcaa" />
 
 ## What this adds over OpenCode's built-in tools
 
-Seven search tools that work without an API key. OpenCode 1 has no web search at all unless you use its own provider, and OpenCode 2's requires a key for Exa, Firecrawl, Parallel or Tavily.
+Six search tools that work without an API key. OpenCode 1 has no web search at all unless you use its own provider, and OpenCode 2's requires a key for Exa, Firecrawl, Parallel or Tavily.
 
-Five of the tools search sources a general web search does not reach: Bluesky posts and standard.site records through the AT Protocol, Wikipedia and MDN through their own APIs, and Google News for what is being published now.
+Four of the tools search sources a general web search does not reach: Bluesky posts through the AT Protocol, Wikipedia and MDN through their own APIs, and Google News for what is being published now.
 
 **Use at your own risk:** the DuckDuckGo and Brave providers scrape HTML nobody promised would stay parseable, so they can break without warning and may run against a service's terms. Results are unverified input.
 
-Google web search and Mojeek were removed — see [REMOVED.md](REMOVED.md) for what was tested and why.
+Google web search, Mojeek and standard.site were removed — see [REMOVED.md](REMOVED.md) for what was tested and why.
 
 ## Quick Start
 
@@ -80,20 +80,6 @@ Search Bluesky posts via the AT Protocol. Returns posts with author handle, text
 | `query`   | string | yes      |                                |
 | `limit`   | number | no       | Number of results to return    |
 | `sort`    | string | no       | Sort order: `top` or `latest`  |
-
-### standard_search
-
-Search [standard.site](https://standard.site) document records on the AT Protocol. Returns blog posts and articles published to the ATmosphere with title, URL, date, and snippet.
-
-| Parameter | Type   | Required | Description                        |
-| --------- | ------ | -------- | ---------------------------------- |
-| `query`   | string | yes      |                                    |
-| `limit`   | number | no       | Number of results to return        |
-| `offset`  | number | no       | Number of results to skip          |
-
-standard.site is a publishing platform built on the AT Protocol where content is stored in a user's personal data repository. Unlike traditional websites that require crawlers and indexing pipelines to be discoverable, content published on standard.site is structured, portable, and directly queryable through the AT Protocol.
-
-**Currently unavailable.** The appview this tool queries, `standard-search.octet-stream.net`, refuses connections, and no replacement endpoint is published on standard.site or in its docs. The provider is left in place unchanged; its live test soft-skips while the host is unreachable, so the suite stays green without masking parser regressions.
 
 ### wiki_search
 

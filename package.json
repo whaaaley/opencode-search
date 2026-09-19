@@ -1,7 +1,7 @@
 {
   "name": "opencode-search",
-  "version": "1.0.0-next.7",
-  "description": "OpenCode plugin that provides web search tools using DuckDuckGo, Brave, Google News, Wikipedia, Bluesky, Standard.site, and MDN Web Docs.",
+  "version": "1.0.0-next.8",
+  "description": "OpenCode plugin that provides web search tools using DuckDuckGo, Brave, Google News, Wikipedia, Bluesky, and MDN Web Docs.",
   "keywords": [
     "opencode",
     "opencode-plugin",
@@ -14,8 +14,7 @@
     "wikipedia",
     "mdn",
     "bluesky",
-    "atproto",
-    "standard-site"
+    "atproto"
   ],
   "homepage": "https://github.com/whaaaley/opencode-search#readme",
   "bugs": {
