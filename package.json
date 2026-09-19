@@ -1,6 +1,6 @@
 {
   "name": "opencode-search",
-  "version": "1.0.0-next.9",
+  "version": "1.0.0-next.10",
   "description": "OpenCode plugin that provides web search tools using DuckDuckGo, Brave, Google News, Wikipedia, Bluesky, MDN Web Docs, and the IETF, W3C and WHATWG specifications.",
   "keywords": [
     "atproto",

@@ -24,8 +24,12 @@ export const rfcSearch = async (query: string, limit = DEFAULT_LIMIT): Promise<R
   const cached = await cache.get<RfcResult[]>(cacheKey)
   if (cached) return cached.slice(0, limit)
 
+  // A bare number or an 'RFC 9421' style query is a lookup, not a title search.
+  // Matches an optional 'rfc' prefix, optional space, then the digits.
+  const [, number] = query.trim().match(/^rfc[\s-]?(\d{1,5})$/i) ?? query.trim().match(/^(\d{1,5})$/) ?? []
+
   const params = new URLSearchParams({
-    title__icontains: query,
+    ...(number ? { name: 'rfc' + number } : { title__icontains: query }),
     type: 'rfc',
     limit: String(Math.min(limit, 100)),
     format: 'json',
