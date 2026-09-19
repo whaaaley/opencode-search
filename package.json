@@ -1,64 +1,64 @@
 {
   "name": "opencode-search",
   "version": "1.0.0-next.0",
-  "author": "Dustin Dowell",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/whaaaley/opencode-search.git"
-  },
-  "main": "./dist/search.js",
-  "dependencies": {
-    "@mozilla/readability": "0.5.0",
-    "jsdom": "26.1.0"
-  },
-  "devDependencies": {
-    "@types/bun": "1.3.9",
-    "@types/jsdom": "27.0.0",
-    "dprint": "latest",
-    "typescript": "5.9.3",
-    "@opencode/plugin": "2.0.10"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/search.d.ts",
-      "import": "./dist/search.js"
-    }
-  },
-  "bugs": {
-    "url": "https://github.com/whaaaley/opencode-search/issues"
-  },
-  "description": "OpenCode plugin that provides web search tools using DuckDuckGo, Google, Wikipedia, Bluesky, Standard.site, and MDN Web Docs.",
-  "files": [
-    "dist/",
-    "README.md",
-    "REMOVED.md",
-    "LICENSE"
-  ],
-  "homepage": "https://github.com/whaaaley/opencode-search#readme",
+  "description": "OpenCode plugin that provides web search tools using DuckDuckGo, Brave, Google News, Wikipedia, Bluesky, Standard.site, and MDN Web Docs.",
   "keywords": [
     "opencode",
     "opencode-plugin",
     "plugin",
     "search",
     "web-search",
-    "wikipedia",
     "duckduckgo",
-    "google",
+    "brave",
+    "google-news",
+    "wikipedia",
+    "mdn",
     "bluesky",
     "atproto",
     "standard-site"
   ],
+  "homepage": "https://github.com/whaaaley/opencode-search#readme",
+  "bugs": {
+    "url": "https://github.com/whaaaley/opencode-search/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/whaaaley/opencode-search.git"
+  },
   "license": "MIT",
+  "author": "Dustin Dowell",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/search.d.ts",
+      "import": "./dist/search.js"
+    }
+  },
+  "main": "./dist/search.js",
+  "types": "./dist/search.d.ts",
+  "files": [
+    "dist/",
+    "README.md",
+    "REMOVED.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rm -rf dist",
-    "fmt": "bun run dprint fmt",
-    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build",
     "test": "bun test",
-    "prepublishOnly": "npm run build"
+    "typecheck": "tsc --noEmit"
   },
-  "type": "module",
-  "types": "./dist/search.d.ts",
+  "dependencies": {
+    "@mozilla/readability": "0.5.0",
+    "jsdom": "26.1.0"
+  },
+  "devDependencies": {
+    "@opencode/plugin": "2.0.10",
+    "@types/bun": "1.3.9",
+    "@types/jsdom": "27.0.0",
+    "typescript": "5.9.3"
+  },
   "peerDependencies": {
     "@opencode/plugin": ">=2.0.0"
   },
