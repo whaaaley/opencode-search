@@ -38,6 +38,8 @@
   "types": "./dist/search.d.ts",
   "files": [
     "dist/",
+    "src/",
+    "search.ts",
     "README.md",
     "REMOVED.md",
     "LICENSE"
@@ -45,7 +47,7 @@
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rm -rf dist",
-    "prepublishOnly": "npm run build",
+    "prepare": "npm run build",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
