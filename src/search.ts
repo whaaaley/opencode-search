@@ -63,7 +63,11 @@ const queryArg = {
 
 export const createDdgSearchTool = (context: Plugin.Context): Tool.Info => ({
   name: 'ddg_search',
-  description: 'Search DuckDuckGo and return results as extracted text content',
+  description: [
+    'Search the web with DuckDuckGo when you need current information from the internet.',
+    'Use for general web queries: products, people, events, how-tos, anything not covered by a more specific tool.',
+    'Returns titles, URLs and snippets.',
+  ].join(' '),
   input: queryArg,
   async execute(input, ctx) {
     const query = stringField(input, 'query')
@@ -86,7 +90,11 @@ export const createDdgSearchTool = (context: Plugin.Context): Tool.Info => ({
 
 export const createBraveSearchTool = (context: Plugin.Context): Tool.Info => ({
   name: 'brave_search',
-  description: 'Search the web via Brave Search, returning titles, URLs, and snippets.',
+  description: [
+    'Search the web with Brave when you need current information from the internet.',
+    'The most reliable general web search here; prefer it over ddg_search when either would do.',
+    'Returns titles, URLs and snippets.',
+  ].join(' '),
   input: queryArg,
   async execute(input, ctx) {
     const query = stringField(input, 'query')
@@ -110,8 +118,9 @@ export const createBraveSearchTool = (context: Plugin.Context): Tool.Info => ({
 export const createBskySearchTool = (context: Plugin.Context): Tool.Info => ({
   name: 'bsky_search',
   description: [
-    'Search Bluesky posts via the AT Protocol.',
-    'Returns posts with author, text, and engagement counts.',
+    'Search Bluesky posts for what people are saying about a topic right now.',
+    'Use for public reaction, discussion and opinion, not for documentation or reference material.',
+    'Returns author handle, post text, and like, repost and reply counts.',
   ].join(' '),
   input: {
     type: 'object',
@@ -151,7 +160,11 @@ export const createBskySearchTool = (context: Plugin.Context): Tool.Info => ({
 
 export const createWikiSearchTool = (context: Plugin.Context): Tool.Info => ({
   name: 'wiki_search',
-  description: 'Search Wikipedia articles. Returns page titles, descriptions, and excerpts.',
+  description: [
+    'Look up a subject on Wikipedia for background, definitions and general reference.',
+    'Use when the question is about what something IS rather than what is happening with it.',
+    'Returns page titles, descriptions and excerpts.',
+  ].join(' '),
   input: {
     type: 'object',
     properties: {
@@ -189,9 +202,9 @@ export const createWikiSearchTool = (context: Plugin.Context): Tool.Info => ({
 export const createGnewsSearchTool = (context: Plugin.Context): Tool.Info => ({
   name: 'gnews_search',
   description: [
-    'Search Google News for recent articles, returning headlines, publishers, and dates.',
+    'Search Google News for recent news coverage of a topic.',
     'News and tech media only — not general web search, and not documentation.',
-    'Links are news.google.com redirect URLs, not publisher URLs.',
+    'Links are news.google.com redirect URLs that only open in a browser, not publisher URLs.',
   ].join(' '),
   input: {
     type: 'object',
@@ -224,7 +237,11 @@ export const createGnewsSearchTool = (context: Plugin.Context): Tool.Info => ({
 
 export const createMdnSearchTool = (context: Plugin.Context): Tool.Info => ({
   name: 'mdn_search',
-  description: 'Search MDN Web Docs. Returns documentation pages for web technologies.',
+  description: [
+    'Look up web platform documentation on MDN: JavaScript, CSS, HTML, and browser APIs.',
+    'Use for how a web API behaves, its syntax, parameters or browser support.',
+    'Returns documentation pages with titles, URLs and summaries.',
+  ].join(' '),
   input: {
     type: 'object',
     properties: {
@@ -262,11 +279,16 @@ export const createMdnSearchTool = (context: Plugin.Context): Tool.Info => ({
 
 export const createRfcSearchTool = (context: Plugin.Context): Tool.Info => ({
   name: 'rfc_search',
-  description: 'Search IETF RFCs by title. Returns RFC number, title, date, and abstract.',
+  description: [
+    'Look up an IETF RFC by number or title.',
+    'Accepts a number like 9421, RFC9421 or \'rfc 9421\' for a direct lookup, or words from the title to search.',
+    'Use for internet protocol specifications: HTTP, TCP, TLS, DNS, email, and so on.',
+    'Returns the RFC number, title, date, abstract, and a link to the full text.',
+  ].join(' '),
   input: {
     type: 'object',
     properties: {
-      query: { type: 'string', description: 'The search query' },
+      query: { type: 'string', description: "An RFC number like 9421 or 'RFC9421', or words from the title" },
       limit: { type: 'number', description: 'Maximum number of results to return (default 20)' },
     },
     required: ['query'],
@@ -294,7 +316,12 @@ export const createRfcSearchTool = (context: Plugin.Context): Tool.Info => ({
 
 export const createW3cSearchTool = (context: Plugin.Context): Tool.Info => ({
   name: 'w3c_search',
-  description: 'Search W3C specifications by title. Returns the spec title and its URL.',
+  description: [
+    'Look up a W3C specification by words in its title.',
+    'Use for web standards W3C publishes: CSS, WCAG accessibility, SVG, WebRTC, and similar.',
+    'Matches titles only, so query the spec name rather than a concept inside it.',
+    'Returns the specification title and URL.',
+  ].join(' '),
   input: {
     type: 'object',
     properties: {
@@ -326,7 +353,12 @@ export const createW3cSearchTool = (context: Plugin.Context): Tool.Info => ({
 
 export const createWhatwgSearchTool = (context: Plugin.Context): Tool.Info => ({
   name: 'whatwg_search',
-  description: 'Search WHATWG living standards. Returns the standard name, URL, and description.',
+  description: [
+    'Look up a WHATWG living standard such as HTML, DOM, Fetch, URL or Streams.',
+    'Use for the current web platform specs WHATWG maintains, which supersede older W3C versions.',
+    'There are only 27 standards, so expect few results.',
+    'Returns the standard name, URL and description.',
+  ].join(' '),
   input: {
     type: 'object',
     properties: {
