@@ -32,28 +32,32 @@
   "license": "MIT",
   "author": "Dustin Dowell",
   "type": "module",
+  "packageManager": "pnpm@12.18.0",
   "exports": {
     ".": {
-      "types": "./dist/search.d.ts",
-      "import": "./dist/search.js"
-    }
+      "types": "./dist/search.d.mts",
+      "import": "./dist/search.mjs"
+    },
+    "./package.json": "./package.json"
   },
-  "main": "./dist/search.js",
-  "types": "./dist/search.d.ts",
+  "main": "./dist/search.mjs",
+  "types": "./dist/search.d.mts",
   "files": [
-    "dist/",
-    "src/",
-    "search.ts",
+    "dist",
     "README.md",
     "REMOVED.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "npm run clean && tsc",
-    "clean": "rm -rf dist",
-    "prepare": "npm run build",
-    "test": "bun test",
-    "typecheck": "tsc --noEmit"
+    "check": "vp check",
+    "typecheck": "tsc",
+    "test": "vp test --project unit",
+    "test:integration": "vp test --run --project integration",
+    "test:coverage": "vp test --project unit --coverage",
+    "record": "vp test --run --mode record --project 'crush*'",
+    "build": "vp pack",
+    "lint": "vp lint --deny-warnings --report-unused-disable-directives",
+    "prepack": "vp run build"
   },
   "dependencies": {
     "@opencode/plugin": "2.0.10",
@@ -61,8 +65,10 @@
     "zod": "4.1.8"
   },
   "devDependencies": {
-    "@types/bun": "1.3.9",
     "@types/jsdom": "27.0.0",
-    "typescript": "5.9.3"
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-istanbul": "catalog:",
+    "typescript": "^7.0.2",
+    "vite-plus": "catalog:"
   }
 }

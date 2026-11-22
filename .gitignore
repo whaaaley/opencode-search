@@ -2,8 +2,12 @@
 .trash/
 node_modules/
 dist/
+coverage/
 .env
 .cache
 .opencode/
-bun.lock
+.crush/
+crush.config.ts
 notes/
+settings.json
+explore.config.ts
