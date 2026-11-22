@@ -21,4 +21,10 @@ NOTES=${NOTES:-$(git log -1 HEAD --oneline)}
 
 LINK="npm: https://www.npmjs.com/package/$NAME/v/$VERSION"
 
-gh release create "$TAG" --title "$TAG" --notes "$(printf '%s\n\n%s\n' "$LINK" "$NOTES")"
+# A prerelease is marked as one, so GitHub keeps showing the last stable version as Latest.
+KIND=--latest
+if [[ "$VERSION" == *-* ]]; then
+  KIND=--prerelease
+fi
+
+gh release create "$TAG" --title "$TAG" "$KIND" --notes "$(printf '%s\n\n%s\n' "$LINK" "$NOTES")"

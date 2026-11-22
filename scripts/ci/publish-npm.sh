@@ -19,5 +19,11 @@ if [ -n "${NPM_TOKEN:-}" ]; then
   export NPM_CONFIG_USERCONFIG="$CONFIG"
 fi
 
+# A prerelease such as 2.1.0-next.0 goes out under next, so it never becomes what a plain install gets.
+TAG=latest
+if [[ "$VERSION" == *-* ]]; then
+  TAG=next
+fi
+
 # prepack builds dist first, and provenance records which commit and workflow built the package.
-npm publish --access public --provenance
+npm publish --access public --provenance --tag "$TAG"
