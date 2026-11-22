@@ -22,13 +22,13 @@ const json = (body: unknown): (() => Response) => {
 const page = { url: 'https://example.com/', title: 'Example', description: 'An example page', position: 1 }
 
 describe('firecrawlSearch', () => {
-  it('reads each web result', async () => {
+  it('reads each web result', { meta: { steps: 11 } }, async () => {
     const results = await firecrawlSearch(depsAnswering(json({ success: true, data: { web: [page] } })), 'q')
 
     expect(results).toEqual([{ title: 'Example', url: 'https://example.com/', abstract: 'An example page' }])
   })
 
-  it('posts the query and limit for web results, with no key', async () => {
+  it('posts the query and limit for web results, with no key', { meta: { steps: 7 } }, async () => {
     const calls: Call[] = []
 
     await firecrawlSearch(depsAnswering(json({ data: { web: [] } }), calls), 'a b', 5)
@@ -41,7 +41,7 @@ describe('firecrawlSearch', () => {
     ])
   })
 
-  it('asks for ten by default', async () => {
+  it('asks for ten by default', { meta: { steps: 8 } }, async () => {
     const calls: Call[] = []
 
     await firecrawlSearch(depsAnswering(json({ data: { web: [] } }), calls), 'q')
@@ -49,18 +49,18 @@ describe('firecrawlSearch', () => {
     expect(JSON.parse(String(calls[0]?.init?.body)).limit).toEqual(10)
   })
 
-  it('skips results without a title or url and fills a missing description', async () => {
+  it('skips results without a title or url and fills a missing description', { meta: { steps: 16 } }, async () => {
     const results = await firecrawlSearch(depsAnswering(json({ data: { web: [{ url: 'https://a' }, { title: 'No url' }, { url: 'https://b', title: 'B' }] } })), 'q')
 
     expect(results).toEqual([{ title: 'B', url: 'https://b', abstract: '' }])
   })
 
-  it('returns nothing for an answer without data', async () => {
+  it('returns nothing for an answer without data', { meta: { steps: 16 } }, async () => {
     expect(await firecrawlSearch(depsAnswering(json({ success: true })), 'q')).toEqual([])
     expect(await firecrawlSearch(depsAnswering(json({ data: {} })), 'q')).toEqual([])
   })
 
-  it('throws the status of a failed search', async () => {
+  it('throws the status of a failed search', { meta: { steps: 7 } }, async () => {
     const deps = depsAnswering(() => new Response('', { status: 429, statusText: 'Too Many Requests' }))
 
     await expect(firecrawlSearch(deps, 'q')).rejects.toThrow('Firecrawl returned 429 Too Many Requests')
@@ -84,7 +84,7 @@ describe('firecrawlSearch cache', () => {
     }),
   })
 
-  it('answers from the entry saved under its key', async () => {
+  it('answers from the entry saved under its key', { meta: { steps: 7 } }, async () => {
     const urls: string[] = []
     const saved = [{ title: 'saved', url: 'u', abstract: '' }]
 
@@ -92,7 +92,7 @@ describe('firecrawlSearch cache', () => {
     expect(urls).toEqual([])
   })
 
-  it('saves the results under its key, apart for each query and limit', async () => {
+  it('saves the results under its key, apart for each query and limit', { meta: { steps: 19 } }, async () => {
     const writes: string[] = []
     const urls: string[] = []
     const deps = depsWith({}, writes, urls)

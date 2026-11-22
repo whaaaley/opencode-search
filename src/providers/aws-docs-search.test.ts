@@ -22,29 +22,29 @@ const json = (body: unknown): (() => Response) => {
 const excerpt = (n: number): unknown => ({ textExcerptSuggestion: { title: 'Page ' + n, link: 'https://docs.aws.amazon.com/' + n, summary: 'Summary ' + n } })
 
 describe('awsDocsSearch', () => {
-  it('reads each excerpt suggestion into a web result', async () => {
+  it('reads each excerpt suggestion into a web result', { meta: { steps: 13 } }, async () => {
     const results = await awsDocsSearch(depsAnswering(json({ suggestions: [excerpt(1)] })), 'q')
 
     expect(results).toEqual([{ title: 'Page 1', url: 'https://docs.aws.amazon.com/1', abstract: 'Summary 1' }])
   })
 
-  it('uses the suggestion body when there is no summary', async () => {
+  it('uses the suggestion body when there is no summary', { meta: { steps: 13 } }, async () => {
     const suggestions = [{ textExcerptSuggestion: { title: 'T', link: 'https://docs.aws.amazon.com/t', suggestionBody: 'Body text' } }]
 
     expect(await awsDocsSearch(depsAnswering(json({ suggestions })), 'q')).toEqual([{ title: 'T', url: 'https://docs.aws.amazon.com/t', abstract: 'Body text' }])
   })
 
-  it('skips suggestions without an excerpt, a title or a link', async () => {
+  it('skips suggestions without an excerpt, a title or a link', { meta: { steps: 23 } }, async () => {
     const suggestions = [{}, { textExcerptSuggestion: { link: 'https://docs.aws.amazon.com/x' } }, { textExcerptSuggestion: { title: 'No link' } }, excerpt(2)]
 
     expect((await awsDocsSearch(depsAnswering(json({ suggestions })), 'q')).map((result) => result.title)).toEqual(['Page 2'])
   })
 
-  it('returns nothing for an answer without suggestions', async () => {
+  it('returns nothing for an answer without suggestions', { meta: { steps: 8 } }, async () => {
     expect(await awsDocsSearch(depsAnswering(json({})), 'q')).toEqual([])
   })
 
-  it('posts the query for docs.aws.amazon.com in English, in a fresh session', async () => {
+  it('posts the query for docs.aws.amazon.com in English, in a fresh session', { meta: { steps: 16 } }, async () => {
     const calls: Call[] = []
 
     await awsDocsSearch(depsAnswering(json({ suggestions: [] }), calls), 's3 versioning')
@@ -63,7 +63,7 @@ describe('awsDocsSearch', () => {
     })
   })
 
-  it('returns ten by default and up to the limit given, caching the whole list', async () => {
+  it('returns ten by default and up to the limit given, caching the whole list', { meta: { steps: 87 } }, async () => {
     const calls: Call[] = []
     const deps = depsAnswering(json({ suggestions: Array.from({ length: 15 }, (_, n) => excerpt(n)) }), calls)
 
@@ -72,7 +72,7 @@ describe('awsDocsSearch', () => {
     expect(calls.length).toEqual(1)
   })
 
-  it('throws the status of a failed search', async () => {
+  it('throws the status of a failed search', { meta: { steps: 7 } }, async () => {
     const deps = depsAnswering(() => new Response('', { status: 500, statusText: 'Server Error' }))
 
     await expect(awsDocsSearch(deps, 'q')).rejects.toThrow('AWS docs search returned 500 Server Error')
@@ -80,7 +80,7 @@ describe('awsDocsSearch', () => {
 })
 
 describe('awsDocsSearch cache', () => {
-  it('answers from the entry saved under aws-docs:<query>', async () => {
+  it('answers from the entry saved under aws-docs:<query>', { meta: { steps: 7 } }, async () => {
     const calls: Call[] = []
     const saved = [{ title: 'saved', url: 'u', abstract: '' }]
     const deps: Deps = {

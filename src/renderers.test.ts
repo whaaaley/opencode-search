@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vite-plus/test'
-import { renderBskyPost, renderGnewsItem, renderMdnDoc, renderRfc, renderW3c, renderWhatwg, renderWikiPage } from './renderers.ts'
+import { renderBskyPost, renderGnewsItem, renderMdnDoc, renderRfc, renderW3c, renderWebResult, renderWhatwg, renderWikiPage } from './renderers.ts'
+
+describe('renderWebResult', () => {
+  it('renders the numbered title, url and normalized abstract', { meta: { steps: 0 } }, () => {
+    const result = { title: 'Example', url: 'https://example.com/', abstract: 'An  <b>example</b>' }
+
+    expect(renderWebResult(result, 2)).toBe('3. Example\n   https://example.com/\n   An example')
+  })
+})
 
 describe('renderGnewsItem', () => {
   const item = {

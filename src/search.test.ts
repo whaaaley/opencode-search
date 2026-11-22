@@ -170,7 +170,7 @@ describe('createSearchTools', () => {
     ])
   })
 
-  it('posts the formatted results to the session and returns them', { meta: { steps: 28 } }, async () => {
+  it('posts the formatted results to the session and returns them', { meta: { steps: 18 } }, async () => {
     const posted: Posted[] = []
     const index = { workstreams: [{ standards: [{ name: 'DOM', href: 'https://dom' }] }] }
 
@@ -189,7 +189,7 @@ describe('createSearchTools', () => {
     expect(result).toEqual({ content: [{ type: 'text', text: 'WHATWG results (0 results)' }] })
   })
 
-  it('answers a failed search with the provider and reason', { meta: { steps: 98 } }, async () => {
+  it('answers a failed search with the provider and reason', { meta: { steps: 90 } }, async () => {
     const posted: Posted[] = []
     const cases = [
       ['aws_docs_search', 'AWS docs search failed: AWS docs search returned 500 Down'],
@@ -213,7 +213,7 @@ describe('createSearchTools', () => {
     expect(await run({ name: 'rfc_search', input: { limit: 2 }, respond: failing })).toMatch(/^RFC search failed: /)
   })
 
-  it('refuses a limit or page below one, or not a whole number, before searching', { meta: { steps: 14 } }, async () => {
+  it('refuses a limit or page below one, or not a whole number, before searching', { meta: { steps: 18 } }, async () => {
     const urls: string[] = []
     const respond = (url: string): Response => {
       urls.push(url)
@@ -264,21 +264,21 @@ describe('createSearchTools', () => {
     expect(text).toBe('MDN Web Docs results (showing 1-1 of 30, page 1)\n\n1. X\n   https://developer.mozilla.org/x\n   ')
   })
 
-  it('formats firecrawl results as web results', async () => {
+  it('formats firecrawl results as web results', { meta: { steps: 17 } }, async () => {
     const web = { url: 'https://w', title: 'W', description: 'about <i>w</i>' }
     const firecrawl = await run({ name: 'firecrawl_search', input: { query: 'q' }, respond: () => Response.json({ data: { web: [web] } }) })
 
     expect(firecrawl).toBe('Firecrawl results (showing 1-1 of 1, page 1)\n\n1. W\n   https://w\n   about w')
   })
 
-  it('formats aws documentation results as web results', async () => {
+  it('formats aws documentation results as web results', { meta: { steps: 19 } }, async () => {
     const suggestions = [{ textExcerptSuggestion: { title: 'S3', link: 'https://docs.aws.amazon.com/s3', summary: 'Buckets' } }]
     const aws = await run({ name: 'aws_docs_search', input: { query: 'q' }, respond: () => Response.json({ suggestions }) })
 
     expect(aws).toBe('AWS documentation results (showing 1-1 of 1, page 1)\n\n1. S3\n   https://docs.aws.amazon.com/s3\n   Buckets')
   })
 
-  it('formats gnews, rfc, w3c and whatwg results with their limits', async () => {
+  it('formats gnews, rfc, w3c and whatwg results with their limits', { meta: { steps: 97 } }, async () => {
     const gnews = await run({ name: 'gnews_search', input: { query: 'q', limit: 1 }, respond: () => new Response('<item><title>G</title><link>https://g</link></item>'.repeat(2)) })
     const rfc = await run({ name: 'rfc_search', input: { query: 'q', limit: 1 }, respond: () => Response.json({ objects: [{ name: 'rfc1' }, { name: 'rfc2' }] }) })
     const specifications = [
