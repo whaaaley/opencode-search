@@ -8,6 +8,9 @@ const API_URL = 'https://api.w3.org/specifications'
 const PAGE_SIZE = 1000
 const DEFAULT_LIMIT = 20
 
+// The index fits in two pages, so a count far past that is a bad answer, and fetching it would fire that many requests at once.
+const MAX_PAGES = 5
+
 export type W3cResult = {
   title: string
   url: string
@@ -21,7 +24,7 @@ const specSchema = z.object({
 })
 
 const pageSchema = z.object({
-  pages: z.number().default(1),
+  pages: z.number().int().positive().default(1),
   _links: z.object({ specifications: z.array(specSchema).default([]) }).default({ specifications: [] }),
 })
 
@@ -45,7 +48,7 @@ export const w3cSearch = async ({ fetch, cache }: Deps, query: string, limit = D
   const first = await fetchPage(fetch, 1)
 
   // `pages` counts pages at the requested size, so the rest come 1000 at a time from page 2.
-  const rest = await Promise.all(Array.from({ length: first.pages - 1 }, (_, i) => fetchPage(fetch, i + 2)))
+  const rest = await Promise.all(Array.from({ length: Math.min(first.pages, MAX_PAGES) - 1 }, (_, i) => fetchPage(fetch, i + 2)))
   const specs = [first, ...rest].flatMap((page) => page._links.specifications)
 
   const needle = query.toLowerCase()

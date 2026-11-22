@@ -48,6 +48,19 @@ describe('w3cSearch', () => {
     expect(results.map((result) => result.url)).toEqual(['a', 'b', 'c'])
   })
 
+  it('reads at most five pages whatever count the first one gives', { meta: { steps: 13 } }, async () => {
+    const urls: string[] = []
+    const pages = Array.from({ length: 9 }, () => pageOf([], 9))
+
+    await w3cSearch(depsAnswering(pages, urls), 'css')
+
+    expect(urls.length).toEqual(5)
+  })
+
+  it('refuses a page count below one', { meta: { steps: 7 } }, async () => {
+    await expect(w3cSearch(depsAnswering([pageOf([], 0)]), 'css')).rejects.toThrow()
+  })
+
   it('reads one page when the answer has no count or list', { meta: { steps: 9 } }, async () => {
     const urls: string[] = []
 
