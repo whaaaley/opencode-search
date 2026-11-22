@@ -4,16 +4,14 @@ import { z } from 'zod'
 import type { Deps } from './deps.ts'
 import { formatResults } from './format.ts'
 import { sendResult } from './opencode/notify.ts'
-import { braveSearch } from './providers/brave-search.ts'
 import { bskySearch } from './providers/bsky-search.ts'
-import { ddgSearch } from './providers/ddg-search.ts'
 import { gnewsSearch } from './providers/gnews-search.ts'
 import { mdnSearch } from './providers/mdn-search.ts'
 import { rfcSearch } from './providers/rfc-search.ts'
 import { w3cSearch } from './providers/w3c-search.ts'
 import { whatwgSearch } from './providers/whatwg-search.ts'
 import { wikiSearch } from './providers/wiki-search.ts'
-import { renderBskyPost, renderDdgResult, renderGnewsItem, renderMdnDoc, renderRfc, renderW3c, renderWhatwg, renderWebResult, renderWikiPage } from './renderers.ts'
+import { renderBskyPost, renderGnewsItem, renderMdnDoc, renderRfc, renderW3c, renderWhatwg, renderWikiPage } from './renderers.ts'
 import { safeAsync } from './safe.ts'
 
 // No `output` field: declaring one without a matching output schema in the tool definition makes
@@ -25,19 +23,9 @@ const textOutput = (text: string): Tool.Result => ({
 // A limit or page below 1 has no meaning, and `slice(0, -n)` would turn a negative limit into nearly every result.
 const count = z.number().int().positive()
 
-const queryInput = z.object({ query: z.string() })
 const limitInput = z.object({ query: z.string(), limit: count.optional() })
 const bskyInput = z.object({ query: z.string(), limit: count.optional(), sort: z.string().optional() })
 const mdnInput = z.object({ query: z.string(), limit: count.optional(), page: count.optional() })
-
-const queryArg = {
-  type: 'object',
-  properties: {
-    query: { type: 'string', description: 'The search query' },
-  },
-  required: ['query'],
-  additionalProperties: false,
-} as const
 
 const limitArg = (description: string) =>
   ({
@@ -78,17 +66,6 @@ const searchTool = ({ context, name, description, input, failure, search }: Sear
 export const createSearchTools = (context: Plugin.Context, deps: Deps): Tool.Info[] => [
   searchTool({
     context,
-    name: 'brave_search',
-    description: ['Search the web with Brave when you need current information from the internet.', 'The most reliable general web search here; prefer it over ddg_search when either would do.', 'Returns titles, URLs and snippets.'],
-    input: queryArg,
-    failure: 'Brave search',
-    search: async (raw) => {
-      const items = await braveSearch(deps, queryInput.parse(raw).query)
-      return formatResults({ label: 'Brave results', items, total: items.length, renderItem: renderWebResult })
-    },
-  }),
-  searchTool({
-    context,
     name: 'bsky_search',
     description: [
       'Search Bluesky posts for what people are saying about a topic right now.',
@@ -110,21 +87,6 @@ export const createSearchTools = (context: Plugin.Context, deps: Deps): Tool.Inf
       const options = bskyInput.parse(raw)
       const { posts, hitsTotal } = await bskySearch(deps, options)
       return formatResults({ label: 'Bluesky results', items: posts, total: hitsTotal, limit: options.limit, offset: 0, renderItem: renderBskyPost })
-    },
-  }),
-  searchTool({
-    context,
-    name: 'ddg_search',
-    description: [
-      'Search the web with DuckDuckGo when you need current information from the internet.',
-      'Use for general web queries: products, people, events, how-tos, anything not covered by a more specific tool.',
-      'Returns titles, URLs and snippets.',
-    ],
-    input: queryArg,
-    failure: 'DuckDuckGo search',
-    search: async (raw) => {
-      const items = await ddgSearch(deps, queryInput.parse(raw).query)
-      return formatResults({ label: 'DuckDuckGo results', items, total: items.length, renderItem: renderDdgResult })
     },
   }),
   searchTool({

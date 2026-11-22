@@ -24,6 +24,6 @@ describe('createSetup', () => {
 
     await createSetup({ fetch: async () => new Response(''), cache })(contextCollecting(added))
 
-    expect(added.map((definition) => definition.name)).toEqual(['brave_search', 'bsky_search', 'ddg_search', 'gnews_search', 'mdn_search', 'rfc_search', 'w3c_search', 'whatwg_search', 'wiki_search'])
+    expect(added.map((definition) => definition.name)).toEqual(['bsky_search', 'gnews_search', 'mdn_search', 'rfc_search', 'w3c_search', 'whatwg_search', 'wiki_search'])
   })
 })

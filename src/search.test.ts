@@ -58,19 +58,9 @@ describe('createSearchTools', () => {
       required: ['query'],
       additionalProperties: false,
     })
-    const queryOnly = { type: 'object', properties: { query }, required: ['query'], additionalProperties: false }
     const twenty = 'Maximum number of results to return (default 20)'
 
     expect(tools.map(({ name, description, input }) => ({ name, description, input }))).toEqual([
-      {
-        name: 'brave_search',
-        description: [
-          'Search the web with Brave when you need current information from the internet.',
-          'The most reliable general web search here; prefer it over ddg_search when either would do.',
-          'Returns titles, URLs and snippets.',
-        ].join(' '),
-        input: queryOnly,
-      },
       {
         name: 'bsky_search',
         description: [
@@ -88,15 +78,6 @@ describe('createSearchTools', () => {
           required: ['query'],
           additionalProperties: false,
         },
-      },
-      {
-        name: 'ddg_search',
-        description: [
-          'Search the web with DuckDuckGo when you need current information from the internet.',
-          'Use for general web queries: products, people, events, how-tos, anything not covered by a more specific tool.',
-          'Returns titles, URLs and snippets.',
-        ].join(' '),
-        input: queryOnly,
       },
       {
         name: 'gnews_search',
@@ -177,11 +158,11 @@ describe('createSearchTools', () => {
 
   it('posts the formatted results to the session and returns them', { meta: { steps: 28 } }, async () => {
     const posted: Posted[] = []
-    const html = '<div class="snippet" data-type="web"><a href="https://a.com"><span class="title">A</span></a></div>'
+    const index = { workstreams: [{ standards: [{ name: 'DOM', href: 'https://dom' }] }] }
 
-    const text = await run({ name: 'brave_search', input: { query: 'q' }, respond: () => new Response(html), posted })
+    const text = await run({ name: 'whatwg_search', input: { query: 'dom' }, respond: () => Response.json(index), posted })
 
-    expect(text).toBe('Brave results (showing 1-1 of 1, page 1)\n\n1. A\n   https://a.com\n   ')
+    expect(text).toBe('WHATWG results (showing 1-1 of 1, page 1)\n\n1. DOM\n   https://dom\n   ')
     expect(posted).toEqual([{ sessionID: 'session-1', text, description: 'Search results' }])
   })
 
@@ -197,9 +178,7 @@ describe('createSearchTools', () => {
   it('answers a failed search with the provider and reason', { meta: { steps: 98 } }, async () => {
     const posted: Posted[] = []
     const cases = [
-      ['brave_search', 'Brave search failed: 500 Down'],
       ['bsky_search', 'Bluesky search failed: Bluesky search error (500): '],
-      ['ddg_search', 'DuckDuckGo search failed: ddg-html: 500 Down; ddg-lite: 500 Down'],
       ['gnews_search', 'Google News search failed: Google News returned 500 Down'],
       ['mdn_search', 'MDN search failed: MDN search error (500): '],
       ['rfc_search', 'RFC search failed: IETF Datatracker returned 500 Down'],
@@ -267,8 +246,7 @@ describe('createSearchTools', () => {
     expect(text).toBe('MDN Web Docs results (showing 1-1 of 30, page 1)\n\n1. X\n   https://developer.mozilla.org/x\n   ')
   })
 
-  it('formats ddg, gnews, rfc, w3c and whatwg results with their limits', { meta: { steps: 122 } }, async () => {
-    const ddg = await run({ name: 'ddg_search', input: { query: 'q' }, respond: () => new Response('<a class="result__a" href="https://d.com">D</a>') })
+  it('formats gnews, rfc, w3c and whatwg results with their limits', async () => {
     const gnews = await run({ name: 'gnews_search', input: { query: 'q', limit: 1 }, respond: () => new Response('<item><title>G</title><link>https://g</link></item>'.repeat(2)) })
     const rfc = await run({ name: 'rfc_search', input: { query: 'q', limit: 1 }, respond: () => Response.json({ objects: [{ name: 'rfc1' }, { name: 'rfc2' }] }) })
     const specifications = [
@@ -278,7 +256,6 @@ describe('createSearchTools', () => {
     const w3c = await run({ name: 'w3c_search', input: { query: 'css', limit: 1 }, respond: () => Response.json({ _links: { specifications } }) })
     const whatwg = await run({ name: 'whatwg_search', input: { query: 'dom', limit: 5 }, respond: () => Response.json({ workstreams: [{ standards: [{ name: 'DOM', href: 'https://dom' }] }] }) })
 
-    expect(ddg).toBe('DuckDuckGo results (showing 1-1 of 1, page 1)\n\n1. D\n   https://d.com\n   ')
     expect(gnews).toBe('Google News results (showing 1-1 of 1, page 1)\n\n1. G\n   \n   https://g')
     expect(rfc).toBe('RFC results (showing 1-1 of 1, page 1)\n\n1. RFC1 — \n   https://www.rfc-editor.org/rfc/rfc1.html\n   ')
     expect(w3c).toBe('W3C results (showing 1-1 of 1, page 1)\n\n1. CSS\n   https://c')

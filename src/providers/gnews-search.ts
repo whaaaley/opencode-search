@@ -1,8 +1,9 @@
 import type { Deps } from '../deps.ts'
-import { baseHeaders } from '../strategies.ts'
 
 // Not a general web search: the index is news-weighted and reference pages are largely absent.
 const GNEWS_URL = 'https://news.google.com/rss/search'
+
+const FEED_HEADERS = { 'User-Agent': '', Accept: 'text/html', 'Accept-Encoding': 'gzip', DNT: '1' }
 
 export type GnewsResult = {
   title: string
@@ -53,7 +54,7 @@ export const gnewsSearch = async ({ fetch, cache }: Deps, query: string, limit =
   if (cached) return cached.slice(0, limit)
 
   const params = new URLSearchParams({ q: query, hl: 'en-US', gl: 'US', ceid: 'US:en' })
-  const res = await fetch(GNEWS_URL + '?' + params, { headers: baseHeaders('') })
+  const res = await fetch(GNEWS_URL + '?' + params, { headers: FEED_HEADERS })
 
   if (!res.ok) throw new Error('Google News returned ' + res.status + ' ' + res.statusText)
 

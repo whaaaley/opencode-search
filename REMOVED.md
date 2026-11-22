@@ -16,7 +16,23 @@ The gate is applied before the page is built, so TLS fingerprinting is not the v
 
 [`googler`](https://github.com/jarun/googler) was archived in 2021, [`googlesearch-python`](https://github.com/Nv7-GitHub/googlesearch) has no commits since 2025-02 and an issue titled "google stop Lynx support" (2025-09), and `yagooglesearch` stopped in 2024.
 
-Use `brave_search` or `ddg_search` instead, or `gnews_search` for news — Google News RSS is a separate service and still answers plain HTTP.
+Use `gnews_search` for news — Google News RSS is a separate service and still answers plain HTTP.
+
+## ddg_search — DuckDuckGo
+
+DuckDuckGo stopped answering. The tool posted the query to `html.duckduckgo.com/html/` and fell back to `lite.duckduckgo.com/lite/`, the two frontends that render without JavaScript, and parsed results out of the HTML.
+
+Tested 2026-11-21 from a residential IP: connections to both hosts timed out after 10 seconds, and a search from OpenCode hung until it was interrupted. When DuckDuckGo does answer an automated client, it serves its `anomaly-modal` bot check on both frontends rather than results.
+
+DuckDuckGo publishes no search API. Its Instant Answer API returns topic summaries, not web results, so there is no supported route to restore this tool through.
+
+## brave_search — Brave
+
+Brave serves a challenge page to automated clients. The tool fetched `search.brave.com/search` and parsed the server-rendered results.
+
+Tested 2026-11-21 from a residential IP: the first search returned Brave's "Verifying you are human" challenge rather than results, which the tool reported as a CAPTCHA or rate limit.
+
+Brave's [Search API](https://brave.com/search/api/) is the supported route. It needs an API key, so a tool built on it would work only for users who set one up.
 
 ## standard_search — standard.site
 

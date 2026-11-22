@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vite-plus/test'
 import { createCache } from '../cache.ts'
 import type { Deps } from '../deps.ts'
 import { bskySearch } from './bsky-search.ts'
-import { ddgSearch } from './ddg-search.ts'
 import { mdnSearch } from './mdn-search.ts'
 import { rfcSearch } from './rfc-search.ts'
 import { w3cSearch } from './w3c-search.ts'
@@ -14,10 +13,6 @@ const live = (): Deps => ({ fetch, cache: createCache({ file: { read: async () =
 describe('live providers', () => {
   it('finds Bluesky posts', async () => {
     expect((await bskySearch(live(), { query: 'atproto' })).posts.length).toBeGreaterThan(0)
-  })
-
-  it('finds DuckDuckGo results', async () => {
-    expect((await ddgSearch(live(), 'typescript programming language')).length).toBeGreaterThan(0)
   })
 
   it('finds MDN documents', async () => {

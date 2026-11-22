@@ -1,46 +1,5 @@
 import { describe, expect, it } from 'vite-plus/test'
-import { renderBskyPost, renderDdgResult, renderGnewsItem, renderMdnDoc, renderRfc, renderW3c, renderWebResult, renderWhatwg, renderWikiPage } from './renderers.ts'
-
-describe('renderDdgResult', () => {
-  it('returns three lines: title, url, abstract', { meta: { steps: 0 } }, () => {
-    const result = { title: 'TypeScript', url: 'https://typescriptlang.org', abstract: 'A typed superset of JavaScript' }
-    const lines = renderDdgResult(result, 0).split('\n')
-    expect(lines).toHaveLength(3)
-    expect(lines[0]).toContain('1. TypeScript')
-    expect(lines[1]).toContain('https://typescriptlang.org')
-    expect(lines[2]).toContain('A typed superset of JavaScript')
-  })
-
-  it('uses 1-based index', { meta: { steps: 0 } }, () => {
-    const result = { title: 'Test', url: 'https://example.com', abstract: 'Abstract' }
-    const lines = renderDdgResult(result, 4).split('\n')
-    expect(lines[0]).toMatch(/^5\. /)
-  })
-
-  it('indents url and abstract lines', { meta: { steps: 0 } }, () => {
-    const result = { title: 'Test', url: 'https://example.com', abstract: 'Abstract' }
-    const lines = renderDdgResult(result, 0).split('\n')
-    expect(lines[1]).toMatch(/^ {3}/)
-    expect(lines[2]).toMatch(/^ {3}/)
-  })
-})
-
-describe('renderWebResult', () => {
-  it('returns three lines: title, url, abstract', { meta: { steps: 0 } }, () => {
-    const result = { title: 'TypeScript', url: 'https://typescriptlang.org', abstract: 'A typed superset of JavaScript' }
-    const lines = renderWebResult(result, 0).split('\n')
-    expect(lines).toHaveLength(3)
-    expect(lines[0]).toContain('1. TypeScript')
-    expect(lines[1]).toContain('https://typescriptlang.org')
-    expect(lines[2]).toContain('A typed superset of JavaScript')
-  })
-
-  it('uses 1-based index', { meta: { steps: 0 } }, () => {
-    const result = { title: 'Test', url: 'https://example.com', abstract: 'Abstract' }
-    const lines = renderWebResult(result, 4).split('\n')
-    expect(lines[0]).toMatch(/^5\. /)
-  })
-})
+import { renderBskyPost, renderGnewsItem, renderMdnDoc, renderRfc, renderW3c, renderWhatwg, renderWikiPage } from './renderers.ts'
 
 describe('renderGnewsItem', () => {
   const item = {

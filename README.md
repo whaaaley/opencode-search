@@ -1,18 +1,16 @@
 # opencode-search
 
-An [OpenCode](https://opencode.ai) plugin that gives your agent access to DuckDuckGo, Brave, Google News, Wikipedia, Bluesky, MDN Web Docs, and the IETF, W3C and WHATWG specifications.
+An [OpenCode](https://opencode.ai) plugin that gives your agent access to Google News, Wikipedia, Bluesky, MDN Web Docs, and the IETF, W3C and WHATWG specifications.
 
 <img width="776" height="393" alt="OpenCode running wiki_search for pumpkins and listing three Wikipedia results" src="docs/screenshot.svg" />
 
 ## What this adds over OpenCode's built-in tools
 
-Nine search tools that work without an API key. OpenCode 1 has no web search at all unless you use its own provider, and OpenCode 2's requires a key for Exa, Firecrawl, Parallel or Tavily.
+Seven search tools that work without an API key. OpenCode 1 has no web search at all unless you use its own provider, and OpenCode 2's requires a key for Exa, Firecrawl, Parallel or Tavily.
 
-Seven of the tools search sources a general web search does not reach: Bluesky posts through the AT Protocol, Wikipedia and MDN through their own APIs, Google News for what is being published now, and the IETF, W3C and WHATWG specification indexes directly.
+Each one searches a source a general web search does not reach: Bluesky posts through the AT Protocol, Wikipedia and MDN through their own APIs, Google News for what is being published now, and the IETF, W3C and WHATWG specification indexes directly. None of them is a general web search; pair the plugin with one of OpenCode 2's keyed providers for that.
 
-**Use at your own risk:** the DuckDuckGo and Brave providers scrape HTML nobody promised would stay parseable, so they can break without warning and may run against a service's terms. Results are unverified input.
-
-Google web search, Mojeek and standard.site were removed — see [REMOVED.md](REMOVED.md) for what was tested and why.
+Google web search, DuckDuckGo, Brave, Mojeek and standard.site were removed — see [REMOVED.md](REMOVED.md) for what was tested and why.
 
 ## Quick Start
 
@@ -39,27 +37,6 @@ Restart OpenCode. The plugin will be installed automatically.
 **0.0.9 is the last release for OpenCode 1 and will not be updated.** New providers and fixes land on 1.x, which requires OpenCode 2. Pin the version rather than tracking latest.
 
 ## Tools
-
-### ddg_search
-
-Search the web using DuckDuckGo. Returns structured results with title, URL, and snippet.
-
-| Parameter | Type   | Required |
-| --------- | ------ | -------- |
-| `query`   | string | yes      |
-
-Uses DuckDuckGo's HTML endpoint with POST form parameters to avoid CAPTCHAs.
-Results are parsed from the HTML response into structured title/URL/abstract triples.
-
-### brave_search
-
-Search the web using Brave Search. Returns structured results with title, URL, and snippet.
-
-| Parameter | Type   | Required |
-| --------- | ------ | -------- |
-| `query`   | string | yes      |
-
-Brave serves server-rendered HTML, so it is the most reliable general web provider here.
 
 ### gnews_search
 
