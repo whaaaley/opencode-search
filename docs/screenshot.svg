@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="776" height="393" viewBox="0 0 776 393" role="img" aria-label="OpenCode running wiki_search for pumpkins and listing three Wikipedia results">
+  <style>
+    text { font-family: 'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace; font-size: 13px; fill: #d4d4d8; white-space: pre; }
+    .dim { fill: #8b8d98; }
+    .bold { font-weight: 700; fill: #f4f4f5; }
+    .link { fill: #9ab973; }
+    .term { fill: #e6a15a; font-style: italic; }
+  </style>
+  <rect width="776" height="393" fill="#16171c" />
+  <text class="dim" x="19" y="30">✓ execute</text>
+  <text class="dim" x="19" y="51">› wiki_search [query=pumpkins, limit=3]</text>
+  <text class="dim" x="19" y="91">◈ Search results</text>
+  <text x="19" y="131">Here are the Wikipedia search results for "pumpkins":</text>
+  <text x="19" y="171"><tspan class="dim">1.</tspan> <tspan class="bold">Pumpkin</tspan></text>
+  <text x="40" y="191"><tspan class="dim">-</tspan> <tspan class="bold">URL:</tspan> <tspan class="link">https://en.wikipedia.org/wiki/Pumpkin</tspan></text>
+  <text x="40" y="211"><tspan class="dim">-</tspan> <tspan class="bold">Snippet:</tspan> Category of culinary winter <tspan class="term">Cucurbita</tspan> squashes. Illustrations of pumpkins similar to the modern</text>
+  <text x="19" y="251"><tspan class="dim">2.</tspan> <tspan class="bold">The Smashing Pumpkins</tspan></text>
+  <text x="40" y="271"><tspan class="dim">-</tspan> <tspan class="bold">URL:</tspan> <tspan class="link">https://en.wikipedia.org/wiki/The_Smashing_Pumpkins</tspan></text>
+  <text x="40" y="291"><tspan class="dim">-</tspan> <tspan class="bold">Snippet:</tspan> American alternative rock band. The Smashing Pumpkins (also simply known as Smashing Pumpkins)</text>
+  <text x="19" y="331"><tspan class="dim">3.</tspan> <tspan class="bold">The Smashing Pumpkins discography</tspan></text>
+  <text x="40" y="351"><tspan class="dim">-</tspan> <tspan class="bold">URL:</tspan> <tspan class="link">https://en.wikipedia.org/wiki/The_Smashing_Pumpkins_discography</tspan></text>
+  <text x="40" y="371"><tspan class="dim">-</tspan> <tspan class="bold">Snippet:</tspan> include material recorded by the Smashing Pumpkins members with other side projects. As of 2014</text>
+</svg>
