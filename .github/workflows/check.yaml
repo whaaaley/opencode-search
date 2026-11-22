@@ -1,0 +1,49 @@
+name: Check
+
+# Each check runs as its own job, on its own for a pull request and as the gate release.yaml calls before it tags.
+on:
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # One job per task, so the run graph names the check that failed and one failure leaves the others running.
+  check:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Format and lint
+            command: vp check
+          - name: Type check
+            command: vp run typecheck
+          - name: Test
+            command: vp test --run --project unit
+          - name: Build
+            command: vp run build
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Vite+
+        uses: voidzero-dev/setup-vp@cab1ab9eaff52d4857875f4f2c016e36af8f2c76 # v1.22.0
+        with:
+          node-version-file: .node-version
+          run-install: false
+
+      - name: Install dependencies
+        run: vp install --frozen-lockfile
+
+      - name: ${{ matrix.name }}
+        run: ${{ matrix.command }}
