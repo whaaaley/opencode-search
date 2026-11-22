@@ -11,17 +11,15 @@ let uaIndex = 0
 
 // Rotation gives each fallback attempt a fresh identity after a block
 export const nextUserAgent = (): string => {
-  const agent = USER_AGENTS[uaIndex % USER_AGENTS.length]
-  uaIndex += 1
-
-  return agent ?? ''
+  uaIndex = (uaIndex + 1) % USER_AGENTS.length
+  return USER_AGENTS[uaIndex] ?? ''
 }
 
 export const baseHeaders = (userAgent: string): Record<string, string> => ({
   'User-Agent': userAgent,
-  'Accept': 'text/html',
+  Accept: 'text/html',
   'Accept-Encoding': 'gzip',
-  'DNT': '1',
+  DNT: '1',
 })
 
 export class BlockedError extends Error {
@@ -47,6 +45,7 @@ export const runStrategies = async <T>(strategies: Strategy<T>[]): Promise<T[]> 
   let lastError: Error = new Error('no strategies provided')
 
   for (const strategy of strategies) {
+    // oxlint-disable-next-line no-await-in-loop -- a later strategy runs only once the earlier ones have failed
     const { data, error } = await safeAsync(() => strategy.run(nextUserAgent()))
     if (error) {
       lastError = error

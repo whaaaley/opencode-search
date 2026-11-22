@@ -1,5 +1,7 @@
 import type { Plugin } from '@opencode/plugin'
 import type * as Tool from '@opencode/plugin/promise/tool'
+import { z } from 'zod'
+import type { Deps } from './deps.ts'
 import { formatResults } from './format.ts'
 import { sendResult } from './opencode/notify.ts'
 import { braveSearch } from './providers/brave-search.ts'
@@ -11,22 +13,8 @@ import { rfcSearch } from './providers/rfc-search.ts'
 import { w3cSearch } from './providers/w3c-search.ts'
 import { whatwgSearch } from './providers/whatwg-search.ts'
 import { wikiSearch } from './providers/wiki-search.ts'
-import {
-  renderBskyPost,
-  renderDdgResult,
-  renderGnewsItem,
-  renderMdnDoc,
-  renderRfc,
-  renderW3c,
-  renderWhatwg,
-  renderWebResult,
-  renderWikiPage,
-} from './renderers.ts'
+import { renderBskyPost, renderDdgResult, renderGnewsItem, renderMdnDoc, renderRfc, renderW3c, renderWhatwg, renderWebResult, renderWikiPage } from './renderers.ts'
 import { safeAsync } from './safe.ts'
-
-const postResult = async (context: Plugin.Context, ctx: Tool.ToolContext, text: string) => {
-  await safeAsync(() => sendResult({ context, sessionID: ctx.sessionID, text }))
-}
 
 // No `output` field: declaring one without a matching output schema in the tool definition makes
 // OpenCode reject the result.
@@ -34,23 +22,10 @@ const textOutput = (text: string): Tool.Result => ({
   content: [{ type: 'text', text }],
 })
 
-const isRecord = (value: unknown): value is Record<string, unknown> => (
-  typeof value === 'object' && value !== null && !Array.isArray(value)
-)
-
-const stringField = (input: unknown, key: string): string => {
-  if (!isRecord(input)) return ''
-
-  const value = input[key]
-  return typeof value === 'string' ? value : ''
-}
-
-const numberField = (input: unknown, key: string): number | undefined => {
-  if (!isRecord(input)) return undefined
-
-  const value = input[key]
-  return typeof value === 'number' ? value : undefined
-}
+const queryInput = z.object({ query: z.string() })
+const limitInput = z.object({ query: z.string(), limit: z.number().optional() })
+const bskyInput = z.object({ query: z.string(), limit: z.number().optional(), sort: z.string().optional() })
+const mdnInput = z.object({ query: z.string(), limit: z.number().optional(), page: z.number().optional() })
 
 const queryArg = {
   type: 'object',
@@ -61,341 +36,208 @@ const queryArg = {
   additionalProperties: false,
 } as const
 
-export const createDdgSearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'ddg_search',
-  description: [
-    'Search the web with DuckDuckGo when you need current information from the internet.',
-    'Use for general web queries: products, people, events, how-tos, anything not covered by a more specific tool.',
-    'Returns titles, URLs and snippets.',
-  ].join(' '),
-  input: queryArg,
-  async execute(input, ctx) {
-    const query = stringField(input, 'query')
-
-    const { data, error } = await safeAsync(() => ddgSearch(query))
-    if (error) return textOutput('DuckDuckGo search failed: ' + error.message)
-
-    const formatted = formatResults({
-      label: 'DuckDuckGo results',
-      items: data,
-      total: data.length,
-      renderItem: renderDdgResult,
-    })
-
-    await postResult(context, ctx, formatted)
-
-    return textOutput(formatted)
-  },
-})
-
-export const createBraveSearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'brave_search',
-  description: [
-    'Search the web with Brave when you need current information from the internet.',
-    'The most reliable general web search here; prefer it over ddg_search when either would do.',
-    'Returns titles, URLs and snippets.',
-  ].join(' '),
-  input: queryArg,
-  async execute(input, ctx) {
-    const query = stringField(input, 'query')
-
-    const { data, error } = await safeAsync(() => braveSearch(query))
-    if (error) return textOutput('Brave search failed: ' + error.message)
-
-    const formatted = formatResults({
-      label: 'Brave results',
-      items: data,
-      total: data.length,
-      renderItem: renderWebResult,
-    })
-
-    await postResult(context, ctx, formatted)
-
-    return textOutput(formatted)
-  },
-})
-
-export const createBskySearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'bsky_search',
-  description: [
-    'Search Bluesky posts for what people are saying about a topic right now.',
-    'Use for public reaction, discussion and opinion, not for documentation or reference material.',
-    'Returns author handle, post text, and like, repost and reply counts.',
-  ].join(' '),
-  input: {
+const limitArg = (description: string) =>
+  ({
     type: 'object',
     properties: {
       query: { type: 'string', description: 'The search query' },
-      limit: { type: 'number', description: 'Maximum number of results to return' },
-      sort: { type: 'string', description: 'Sort order: top or latest' },
+      limit: { type: 'number', description },
     },
     required: ['query'],
     additionalProperties: false,
-  },
-  async execute(input, ctx) {
-    const query = stringField(input, 'query')
-    const limit = numberField(input, 'limit')
-    const sort = stringField(input, 'sort') || undefined
+  }) as const
 
-    const { data, error } = await safeAsync(() => (
-      bskySearch({ query, limit, sort })
-    ))
+type SearchToolInput = {
+  context: Plugin.Context
+  name: string
+  description: string[]
+  input: Tool.Info['input']
+  failure: string
+  // Formats the answer to one call, which `execute` reports and posts to the session.
+  search: (input: unknown) => Promise<string>
+}
 
-    if (error) return textOutput('Bluesky search failed: ' + error.message)
+// A failed search becomes the tool's answer, so the model reads why instead of the call erroring out.
+const searchTool = ({ context, name, description, input, failure, search }: SearchToolInput): Tool.Info => ({
+  name,
+  description: description.join(' '),
+  input,
+  async execute(raw, ctx) {
+    const { data: formatted, error } = await safeAsync(() => search(raw))
+    if (error) return textOutput(failure + ' failed: ' + error.message)
 
-    const formatted = formatResults({
-      label: 'Bluesky results',
-      items: data.posts,
-      total: data.hitsTotal,
-      limit,
-      offset: 0,
-      renderItem: renderBskyPost,
-    })
-
-    await postResult(context, ctx, formatted)
+    await safeAsync(() => sendResult({ context, sessionID: ctx.sessionID, text: formatted }))
 
     return textOutput(formatted)
   },
 })
 
-export const createWikiSearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'wiki_search',
-  description: [
-    'Look up a subject on Wikipedia for background, definitions and general reference.',
-    'Use when the question is about what something IS rather than what is happening with it.',
-    'Returns page titles, descriptions and excerpts.',
-  ].join(' '),
-  input: {
-    type: 'object',
-    properties: {
-      query: { type: 'string', description: 'The search query' },
-      limit: { type: 'number', description: 'Maximum number of results to return (1-100)' },
+export const createSearchTools = (context: Plugin.Context, deps: Deps): Tool.Info[] => [
+  searchTool({
+    context,
+    name: 'brave_search',
+    description: ['Search the web with Brave when you need current information from the internet.', 'The most reliable general web search here; prefer it over ddg_search when either would do.', 'Returns titles, URLs and snippets.'],
+    input: queryArg,
+    failure: 'Brave search',
+    search: async (raw) => {
+      const items = await braveSearch(deps, queryInput.parse(raw).query)
+      return formatResults({ label: 'Brave results', items, total: items.length, renderItem: renderWebResult })
     },
-    required: ['query'],
-    additionalProperties: false,
-  },
-  async execute(input, ctx) {
-    const query = stringField(input, 'query')
-    const limit = numberField(input, 'limit')
-
-    const { data, error } = await safeAsync(() => (
-      wikiSearch({ query, limit })
-    ))
-
-    if (error) return textOutput('Wikipedia search failed: ' + error.message)
-
-    const formatted = formatResults({
-      label: 'Wikipedia results',
-      items: data.pages,
-      total: data.pages.length,
-      limit,
-      offset: 0,
-      renderItem: renderWikiPage,
-    })
-
-    await postResult(context, ctx, formatted)
-
-    return textOutput(formatted)
-  },
-})
-
-export const createGnewsSearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'gnews_search',
-  description: [
-    'Search Google News for recent news coverage of a topic.',
-    'News and tech media only — not general web search, and not documentation.',
-    'Links are news.google.com redirect URLs that only open in a browser, not publisher URLs.',
-  ].join(' '),
-  input: {
-    type: 'object',
-    properties: {
-      query: { type: 'string', description: 'The search query' },
-      limit: { type: 'number', description: 'Maximum number of results to return (default 20)' },
+  }),
+  searchTool({
+    context,
+    name: 'bsky_search',
+    description: [
+      'Search Bluesky posts for what people are saying about a topic right now.',
+      'Use for public reaction, discussion and opinion, not for documentation or reference material.',
+      'Returns author handle, post text, and like, repost and reply counts.',
+    ],
+    input: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'The search query' },
+        limit: { type: 'number', description: 'Maximum number of results to return' },
+        sort: { type: 'string', description: 'Sort order: top or latest' },
+      },
+      required: ['query'],
+      additionalProperties: false,
     },
-    required: ['query'],
-    additionalProperties: false,
-  },
-  async execute(input, ctx) {
-    const query = stringField(input, 'query')
-    const limit = numberField(input, 'limit')
-
-    const { data, error } = await safeAsync(() => gnewsSearch(query, limit))
-    if (error) return textOutput('Google News search failed: ' + error.message)
-
-    const formatted = formatResults({
-      label: 'Google News results',
-      items: data,
-      total: data.length,
-      renderItem: renderGnewsItem,
-    })
-
-    await postResult(context, ctx, formatted)
-
-    return textOutput(formatted)
-  },
-})
-
-export const createMdnSearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'mdn_search',
-  description: [
-    'Look up web platform documentation on MDN: JavaScript, CSS, HTML, and browser APIs.',
-    'Use for how a web API behaves, its syntax, parameters or browser support.',
-    'Returns documentation pages with titles, URLs and summaries.',
-  ].join(' '),
-  input: {
-    type: 'object',
-    properties: {
-      query: { type: 'string', description: 'The search query' },
-      limit: { type: 'number', description: 'Maximum number of results to return' },
-      page: { type: 'number', description: 'Page number for pagination' },
+    failure: 'Bluesky search',
+    search: async (raw) => {
+      const options = bskyInput.parse(raw)
+      const { posts, hitsTotal } = await bskySearch(deps, options)
+      return formatResults({ label: 'Bluesky results', items: posts, total: hitsTotal, limit: options.limit, offset: 0, renderItem: renderBskyPost })
     },
-    required: ['query'],
-    additionalProperties: false,
-  },
-  async execute(input, ctx) {
-    const query = stringField(input, 'query')
-    const limit = numberField(input, 'limit')
-    const page = numberField(input, 'page')
-
-    const { data, error } = await safeAsync(() => (
-      mdnSearch({ query, limit, page })
-    ))
-
-    if (error) return textOutput('MDN search failed: ' + error.message)
-
-    const formatted = formatResults({
-      label: 'MDN Web Docs results',
-      items: data.documents,
-      total: data.total,
-      limit,
-      renderItem: renderMdnDoc,
-    })
-
-    await postResult(context, ctx, formatted)
-
-    return textOutput(formatted)
-  },
-})
-
-export const createRfcSearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'rfc_search',
-  description: [
-    'Look up an IETF RFC by number or title.',
-    'Accepts a number like 9421, RFC9421 or \'rfc 9421\' for a direct lookup, or words from the title to search.',
-    'Use for internet protocol specifications: HTTP, TCP, TLS, DNS, email, and so on.',
-    'Returns the RFC number, title, date, abstract, and a link to the full text.',
-  ].join(' '),
-  input: {
-    type: 'object',
-    properties: {
-      query: { type: 'string', description: "An RFC number like 9421 or 'RFC9421', or words from the title" },
-      limit: { type: 'number', description: 'Maximum number of results to return (default 20)' },
+  }),
+  searchTool({
+    context,
+    name: 'ddg_search',
+    description: [
+      'Search the web with DuckDuckGo when you need current information from the internet.',
+      'Use for general web queries: products, people, events, how-tos, anything not covered by a more specific tool.',
+      'Returns titles, URLs and snippets.',
+    ],
+    input: queryArg,
+    failure: 'DuckDuckGo search',
+    search: async (raw) => {
+      const items = await ddgSearch(deps, queryInput.parse(raw).query)
+      return formatResults({ label: 'DuckDuckGo results', items, total: items.length, renderItem: renderDdgResult })
     },
-    required: ['query'],
-    additionalProperties: false,
-  },
-  async execute(input, ctx) {
-    const query = stringField(input, 'query')
-    const limit = numberField(input, 'limit')
-
-    const { data, error } = await safeAsync(() => rfcSearch(query, limit))
-    if (error) return textOutput('RFC search failed: ' + error.message)
-
-    const formatted = formatResults({
-      label: 'RFC results',
-      items: data,
-      total: data.length,
-      renderItem: renderRfc,
-    })
-
-    await postResult(context, ctx, formatted)
-
-    return textOutput(formatted)
-  },
-})
-
-export const createW3cSearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'w3c_search',
-  description: [
-    'Look up a W3C specification by words in its title.',
-    'Use for web standards W3C publishes: CSS, WCAG accessibility, SVG, WebRTC, and similar.',
-    'Matches titles only, so query the spec name rather than a concept inside it.',
-    'Returns the specification title and URL.',
-  ].join(' '),
-  input: {
-    type: 'object',
-    properties: {
-      query: { type: 'string', description: 'The search query' },
-      limit: { type: 'number', description: 'Maximum number of results to return (default 20)' },
+  }),
+  searchTool({
+    context,
+    name: 'gnews_search',
+    description: [
+      'Search Google News for recent news coverage of a topic.',
+      'News and tech media only — not general web search, and not documentation.',
+      'Links are news.google.com redirect URLs that only open in a browser, not publisher URLs.',
+    ],
+    input: limitArg('Maximum number of results to return (default 20)'),
+    failure: 'Google News search',
+    search: async (raw) => {
+      const { query, limit } = limitInput.parse(raw)
+      const items = await gnewsSearch(deps, query, limit)
+      return formatResults({ label: 'Google News results', items, total: items.length, renderItem: renderGnewsItem })
     },
-    required: ['query'],
-    additionalProperties: false,
-  },
-  async execute(input, ctx) {
-    const query = stringField(input, 'query')
-    const limit = numberField(input, 'limit')
-
-    const { data, error } = await safeAsync(() => w3cSearch(query, limit))
-    if (error) return textOutput('W3C search failed: ' + error.message)
-
-    const formatted = formatResults({
-      label: 'W3C results',
-      items: data,
-      total: data.length,
-      renderItem: renderW3c,
-    })
-
-    await postResult(context, ctx, formatted)
-
-    return textOutput(formatted)
-  },
-})
-
-export const createWhatwgSearchTool = (context: Plugin.Context): Tool.Info => ({
-  name: 'whatwg_search',
-  description: [
-    'Look up a WHATWG living standard such as HTML, DOM, Fetch, URL or Streams.',
-    'Use for the current web platform specs WHATWG maintains, which supersede older W3C versions.',
-    'There are only 27 standards, so expect few results.',
-    'Returns the standard name, URL and description.',
-  ].join(' '),
-  input: {
-    type: 'object',
-    properties: {
-      query: { type: 'string', description: 'The search query' },
-      limit: { type: 'number', description: 'Maximum number of results to return (default 20)' },
+  }),
+  searchTool({
+    context,
+    name: 'mdn_search',
+    description: [
+      'Look up web platform documentation on MDN: JavaScript, CSS, HTML, and browser APIs.',
+      'Use for how a web API behaves, its syntax, parameters or browser support.',
+      'Returns documentation pages with titles, URLs and summaries.',
+    ],
+    input: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'The search query' },
+        limit: { type: 'number', description: 'Maximum number of results to return' },
+        page: { type: 'number', description: 'Page number for pagination' },
+      },
+      required: ['query'],
+      additionalProperties: false,
     },
-    required: ['query'],
-    additionalProperties: false,
-  },
-  async execute(input, ctx) {
-    const query = stringField(input, 'query')
-    const limit = numberField(input, 'limit')
-
-    const { data, error } = await safeAsync(() => whatwgSearch(query, limit))
-    if (error) return textOutput('WHATWG search failed: ' + error.message)
-
-    const formatted = formatResults({
-      label: 'WHATWG results',
-      items: data,
-      total: data.length,
-      renderItem: renderWhatwg,
-    })
-
-    await postResult(context, ctx, formatted)
-
-    return textOutput(formatted)
-  },
-})
-
-export const createSearchTools = (context: Plugin.Context): Tool.Info[] => [
-  createBraveSearchTool(context),
-  createBskySearchTool(context),
-  createDdgSearchTool(context),
-  createGnewsSearchTool(context),
-  createMdnSearchTool(context),
-  createRfcSearchTool(context),
-  createW3cSearchTool(context),
-  createWhatwgSearchTool(context),
-  createWikiSearchTool(context),
+    failure: 'MDN search',
+    search: async (raw) => {
+      const options = mdnInput.parse(raw)
+      const { documents, total } = await mdnSearch(deps, options)
+      return formatResults({ label: 'MDN Web Docs results', items: documents, total, limit: options.limit, renderItem: renderMdnDoc })
+    },
+  }),
+  searchTool({
+    context,
+    name: 'rfc_search',
+    description: [
+      'Look up an IETF RFC by number or title.',
+      "Accepts a number like 9421, RFC9421 or 'rfc 9421' for a direct lookup, or words from the title to search.",
+      'Use for internet protocol specifications: HTTP, TCP, TLS, DNS, email, and so on.',
+      'Returns the RFC number, title, date, abstract, and a link to the full text.',
+    ],
+    input: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: "An RFC number like 9421 or 'RFC9421', or words from the title" },
+        limit: { type: 'number', description: 'Maximum number of results to return (default 20)' },
+      },
+      required: ['query'],
+      additionalProperties: false,
+    },
+    failure: 'RFC search',
+    search: async (raw) => {
+      const { query, limit } = limitInput.parse(raw)
+      const items = await rfcSearch(deps, query, limit)
+      return formatResults({ label: 'RFC results', items, total: items.length, renderItem: renderRfc })
+    },
+  }),
+  searchTool({
+    context,
+    name: 'w3c_search',
+    description: [
+      'Look up a W3C specification by words in its title.',
+      'Use for web standards W3C publishes: CSS, WCAG accessibility, SVG, WebRTC, and similar.',
+      'Matches titles only, so query the spec name rather than a concept inside it.',
+      'Returns the specification title and URL.',
+    ],
+    input: limitArg('Maximum number of results to return (default 20)'),
+    failure: 'W3C search',
+    search: async (raw) => {
+      const { query, limit } = limitInput.parse(raw)
+      const items = await w3cSearch(deps, query, limit)
+      return formatResults({ label: 'W3C results', items, total: items.length, renderItem: renderW3c })
+    },
+  }),
+  searchTool({
+    context,
+    name: 'whatwg_search',
+    description: [
+      'Look up a WHATWG living standard such as HTML, DOM, Fetch, URL or Streams.',
+      'Use for the current web platform specs WHATWG maintains, which supersede older W3C versions.',
+      'There are only 27 standards, so expect few results.',
+      'Returns the standard name, URL and description.',
+    ],
+    input: limitArg('Maximum number of results to return (default 20)'),
+    failure: 'WHATWG search',
+    search: async (raw) => {
+      const { query, limit } = limitInput.parse(raw)
+      const items = await whatwgSearch(deps, query, limit)
+      return formatResults({ label: 'WHATWG results', items, total: items.length, renderItem: renderWhatwg })
+    },
+  }),
+  searchTool({
+    context,
+    name: 'wiki_search',
+    description: [
+      'Look up a subject on Wikipedia for background, definitions and general reference.',
+      'Use when the question is about what something IS rather than what is happening with it.',
+      'Returns page titles, descriptions and excerpts.',
+    ],
+    input: limitArg('Maximum number of results to return (1-100)'),
+    failure: 'Wikipedia search',
+    search: async (raw) => {
+      const options = limitInput.parse(raw)
+      const { pages } = await wikiSearch(deps, options)
+      return formatResults({ label: 'Wikipedia results', items: pages, total: pages.length, limit: options.limit, offset: 0, renderItem: renderWikiPage })
+    },
+  }),
 ]

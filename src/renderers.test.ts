@@ -1,15 +1,8 @@
-import { describe, expect, it } from 'bun:test'
-import {
-  renderBskyPost,
-  renderDdgResult,
-  renderGnewsItem,
-  renderMdnDoc,
-  renderWebResult,
-  renderWikiPage,
-} from './renderers.ts'
+import { describe, expect, it } from 'vite-plus/test'
+import { renderBskyPost, renderDdgResult, renderGnewsItem, renderMdnDoc, renderRfc, renderW3c, renderWebResult, renderWhatwg, renderWikiPage } from './renderers.ts'
 
 describe('renderDdgResult', () => {
-  it('returns three lines: title, url, abstract', () => {
+  it('returns three lines: title, url, abstract', { meta: { steps: 0 } }, () => {
     const result = { title: 'TypeScript', url: 'https://typescriptlang.org', abstract: 'A typed superset of JavaScript' }
     const lines = renderDdgResult(result, 0).split('\n')
     expect(lines).toHaveLength(3)
@@ -18,22 +11,22 @@ describe('renderDdgResult', () => {
     expect(lines[2]).toContain('A typed superset of JavaScript')
   })
 
-  it('uses 1-based index', () => {
+  it('uses 1-based index', { meta: { steps: 0 } }, () => {
     const result = { title: 'Test', url: 'https://example.com', abstract: 'Abstract' }
     const lines = renderDdgResult(result, 4).split('\n')
-    expect(lines[0]).toStartWith('5. ')
+    expect(lines[0]).toMatch(/^5\. /)
   })
 
-  it('indents url and abstract lines', () => {
+  it('indents url and abstract lines', { meta: { steps: 0 } }, () => {
     const result = { title: 'Test', url: 'https://example.com', abstract: 'Abstract' }
     const lines = renderDdgResult(result, 0).split('\n')
-    expect(lines[1]).toStartWith('   ')
-    expect(lines[2]).toStartWith('   ')
+    expect(lines[1]).toMatch(/^ {3}/)
+    expect(lines[2]).toMatch(/^ {3}/)
   })
 })
 
 describe('renderWebResult', () => {
-  it('returns three lines: title, url, abstract', () => {
+  it('returns three lines: title, url, abstract', { meta: { steps: 0 } }, () => {
     const result = { title: 'TypeScript', url: 'https://typescriptlang.org', abstract: 'A typed superset of JavaScript' }
     const lines = renderWebResult(result, 0).split('\n')
     expect(lines).toHaveLength(3)
@@ -42,10 +35,10 @@ describe('renderWebResult', () => {
     expect(lines[2]).toContain('A typed superset of JavaScript')
   })
 
-  it('uses 1-based index', () => {
+  it('uses 1-based index', { meta: { steps: 0 } }, () => {
     const result = { title: 'Test', url: 'https://example.com', abstract: 'Abstract' }
     const lines = renderWebResult(result, 4).split('\n')
-    expect(lines[0]).toStartWith('5. ')
+    expect(lines[0]).toMatch(/^5\. /)
   })
 })
 
@@ -58,7 +51,7 @@ describe('renderGnewsItem', () => {
     date: 'Fri, 18 Sep 2026 16:55:50 GMT',
   }
 
-  it('returns three lines: title, source and date, url', () => {
+  it('returns three lines: title, source and date, url', { meta: { steps: 3 } }, () => {
     const lines = renderGnewsItem(item, 0).split('\n')
 
     expect(lines).toHaveLength(3)
@@ -67,10 +60,40 @@ describe('renderGnewsItem', () => {
     expect(lines[2]).toContain('news.google.com')
   })
 
-  it('omits the separator when there is no date', () => {
+  it('omits the separator when there is no date', { meta: { steps: 1 } }, () => {
     const lines = renderGnewsItem({ ...item, date: '' }, 0).split('\n')
 
     expect(lines[1]).not.toContain('—')
+  })
+
+  it('renders the exact lines with a formatted date', { meta: { steps: 3 } }, () => {
+    expect(renderGnewsItem(item, 2)).toBe(['3. Rust 2.0 announced', '   The Register — Sep 18, 2026', '   https://news.google.com/rss/articles/CBMiabc'].join('\n'))
+  })
+
+  it('renders only the source when there is no date', { meta: { steps: 1 } }, () => {
+    expect(renderGnewsItem({ ...item, date: '' }, 0).split('\n')[1]).toBe('   The Register')
+  })
+})
+
+describe('renderRfc', () => {
+  it('renders the number, title, url and normalized abstract', { meta: { steps: 0 } }, () => {
+    const rfc = { id: 'RFC9110', title: 'HTTP Semantics', url: 'https://www.rfc-editor.org/rfc/rfc9110.html', date: '', abstract: 'The  <b>core</b>' }
+
+    expect(renderRfc(rfc, 1)).toBe(['2. RFC9110 — HTTP Semantics', '   https://www.rfc-editor.org/rfc/rfc9110.html', '   The core'].join('\n'))
+  })
+})
+
+describe('renderW3c', () => {
+  it('renders the title and url', { meta: { steps: 0 } }, () => {
+    expect(renderW3c({ title: 'CSS Grid', url: 'https://w3.org/TR/css-grid/' }, 2)).toBe('3. CSS Grid\n   https://w3.org/TR/css-grid/')
+  })
+})
+
+describe('renderWhatwg', () => {
+  it('renders the title, url and normalized abstract', { meta: { steps: 0 } }, () => {
+    const standard = { title: 'DOM', url: 'https://dom.spec.whatwg.org/', abstract: 'Trees &amp; events', workstream: 'Web' }
+
+    expect(renderWhatwg(standard, 4)).toBe('5. DOM\n   https://dom.spec.whatwg.org/\n   Trees & events')
   })
 })
 
@@ -92,130 +115,85 @@ describe('renderBskyPost', () => {
     replyCount: 3,
   }
 
-  it('returns three lines', () => {
+  it('returns three lines', { meta: { steps: 2 } }, () => {
     const lines = renderBskyPost(post, 0).split('\n')
     expect(lines).toHaveLength(3)
   })
 
-  it('includes index and author handle on first line', () => {
+  it('includes index and author handle on first line', { meta: { steps: 2 } }, () => {
     const lines = renderBskyPost(post, 0).split('\n')
     expect(lines[0]).toContain('1. @alice.bsky.social')
   })
 
-  it('uses 1-based index', () => {
+  it('uses 1-based index', { meta: { steps: 2 } }, () => {
     const lines = renderBskyPost(post, 4).split('\n')
-    expect(lines[0]).toStartWith('5. @')
+    expect(lines[0]).toMatch(/^5\. @/)
   })
 
-  it('includes formatted date with time on first line', () => {
+  it('includes formatted date with time on first line', { meta: { steps: 2 } }, () => {
     const lines = renderBskyPost(post, 0).split('\n')
     expect(lines[0]).toContain('Jun')
     expect(lines[0]).toContain('2025')
     expect(lines[0]).toMatch(/AM|PM/)
   })
 
-  it('includes post text on second line', () => {
+  it('includes post text on second line', { meta: { steps: 2 } }, () => {
     const lines = renderBskyPost(post, 0).split('\n')
     expect(lines[1]).toContain('Hello world from Bluesky!')
   })
 
-  it('includes engagement counts on third line', () => {
+  it('includes engagement counts on third line', { meta: { steps: 2 } }, () => {
     const lines = renderBskyPost(post, 0).split('\n')
     expect(lines[2]).toContain('Likes: 42')
     expect(lines[2]).toContain('Reposts: 7')
     expect(lines[2]).toContain('Replies: 3')
   })
 
-  it('indents second and third lines', () => {
+  it('indents second and third lines', { meta: { steps: 2 } }, () => {
     const lines = renderBskyPost(post, 0).split('\n')
-    expect(lines[1]).toStartWith('   ')
-    expect(lines[2]).toStartWith('   ')
+    expect(lines[1]).toMatch(/^ {3}/)
+    expect(lines[2]).toMatch(/^ {3}/)
   })
 })
 
 describe('renderWikiPage', () => {
-  it('includes title and wikipedia url', () => {
-    const result = renderWikiPage({
-      id: 1,
-      key: 'TypeScript',
-      title: 'TypeScript',
-      excerpt: 'A programming language',
-      description: 'Open-source language',
-      matched_title: null,
-      thumbnail: null,
-    }, 0)
+  const described = {
+    id: 1,
+    key: 'TypeScript',
+    title: 'TypeScript',
+    excerpt: 'A programming language',
+    description: 'Open-source language',
+    matched_title: null,
+    thumbnail: null,
+  }
+  const undescribed = { ...described, id: 2, key: 'JavaScript', title: 'JavaScript', excerpt: 'A scripting language', description: null }
+
+  it('includes title and wikipedia url', { meta: { steps: 1 } }, () => {
+    const result = renderWikiPage(described, 0)
     expect(result).toContain('1. TypeScript')
     expect(result).toContain('https://en.wikipedia.org/wiki/TypeScript')
   })
 
-  it('includes description when present', () => {
-    const result = renderWikiPage({
-      id: 1,
-      key: 'TypeScript',
-      title: 'TypeScript',
-      excerpt: 'A programming language',
-      description: 'Open-source language',
-      matched_title: null,
-      thumbnail: null,
-    }, 0)
-    expect(result).toContain('Open-source language')
+  it('includes description when present', { meta: { steps: 1 } }, () => {
+    expect(renderWikiPage(described, 0)).toContain('Open-source language')
   })
 
-  it('omits description when null', () => {
-    const result = renderWikiPage({
-      id: 2,
-      key: 'JavaScript',
-      title: 'JavaScript',
-      excerpt: 'A scripting language',
-      description: null,
-      matched_title: null,
-      thumbnail: null,
-    }, 0)
-    const lines = result.split('\n')
-    expect(lines).toHaveLength(3)
-    expect(lines[0]).toContain('1. JavaScript')
-    expect(lines[1]).toContain('https://en.wikipedia.org/wiki/JavaScript')
-    expect(lines[2]).toContain('A scripting language')
+  it('omits description when null', { meta: { steps: 1 } }, () => {
+    expect(renderWikiPage(undescribed, 0)).toBe('1. JavaScript\n   https://en.wikipedia.org/wiki/JavaScript\n   A scripting language')
   })
 
-  it('returns four lines when description is present', () => {
-    const lines = renderWikiPage({
-      id: 1,
-      key: 'TypeScript',
-      title: 'TypeScript',
-      excerpt: 'A programming language',
-      description: 'Open-source language',
-      matched_title: null,
-      thumbnail: null,
-    }, 0).split('\n')
-    expect(lines).toHaveLength(4)
+  it('returns four lines when description is present', { meta: { steps: 1 } }, () => {
+    expect(renderWikiPage(described, 0).split('\n')).toHaveLength(4)
   })
 
-  it('uses 1-based index', () => {
-    const lines = renderWikiPage({
-      id: 1,
-      key: 'Test',
-      title: 'Test',
-      excerpt: 'Excerpt',
-      description: null,
-      matched_title: null,
-      thumbnail: null,
-    }, 2).split('\n')
-    expect(lines[0]).toStartWith('3. ')
+  it('uses 1-based index', { meta: { steps: 1 } }, () => {
+    expect(renderWikiPage(undescribed, 2)).toMatch(/^3\. /)
   })
 
-  it('indents all lines after the title', () => {
-    const lines = renderWikiPage({
-      id: 1,
-      key: 'Test',
-      title: 'Test',
-      excerpt: 'Excerpt',
-      description: 'Desc',
-      matched_title: null,
-      thumbnail: null,
-    }, 0).split('\n')
-    for (let i = 1; i < lines.length; i++) {
-      expect(lines[i]).toStartWith('   ')
+  it('indents all lines after the title', { meta: { steps: 1 } }, () => {
+    const [, ...rest] = renderWikiPage(described, 0).split('\n')
+    for (const line of rest) {
+      expect(line).toMatch(/^ {3}/)
     }
   })
 })
@@ -230,34 +208,34 @@ describe('renderMdnDoc', () => {
     popularity: 0.5,
   }
 
-  it('returns three lines: title, url, summary', () => {
+  it('returns three lines: title, url, summary', { meta: { steps: 0 } }, () => {
     const lines = renderMdnDoc(doc, 0).split('\n')
     expect(lines).toHaveLength(3)
   })
 
-  it('includes index and title on first line', () => {
+  it('includes index and title on first line', { meta: { steps: 0 } }, () => {
     const lines = renderMdnDoc(doc, 0).split('\n')
     expect(lines[0]).toBe('1. Fetch API')
   })
 
-  it('uses 1-based index', () => {
+  it('uses 1-based index', { meta: { steps: 0 } }, () => {
     const lines = renderMdnDoc(doc, 4).split('\n')
-    expect(lines[0]).toStartWith('5. ')
+    expect(lines[0]).toMatch(/^5\. /)
   })
 
-  it('includes full MDN url on second line', () => {
+  it('includes full MDN url on second line', { meta: { steps: 0 } }, () => {
     const lines = renderMdnDoc(doc, 0).split('\n')
     expect(lines[1]).toContain('https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API')
   })
 
-  it('includes summary on third line', () => {
+  it('includes summary on third line', { meta: { steps: 0 } }, () => {
     const lines = renderMdnDoc(doc, 0).split('\n')
     expect(lines[2]).toContain('The Fetch API provides an interface for fetching resources.')
   })
 
-  it('indents url and summary lines', () => {
+  it('indents url and summary lines', { meta: { steps: 0 } }, () => {
     const lines = renderMdnDoc(doc, 0).split('\n')
-    expect(lines[1]).toStartWith('   ')
-    expect(lines[2]).toStartWith('   ')
+    expect(lines[1]).toMatch(/^ {3}/)
+    expect(lines[2]).toMatch(/^ {3}/)
   })
 })

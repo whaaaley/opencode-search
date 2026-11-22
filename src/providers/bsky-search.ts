@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import * as cache from '../cache.ts'
+import type { Deps } from '../deps.ts'
 
 const BSKY_API = 'https://api.bsky.app/xrpc/app.bsky.feed.searchPosts'
 
@@ -27,7 +27,7 @@ const postSchema = z.object({
 const responseSchema = z.object({
   posts: z.array(z.unknown()),
   hitsTotal: z.number().optional(),
-  cursor: z.string().optional(),
+  cursor: z.string().default(''),
 })
 
 export type BskyPost = z.infer<typeof postSchema>
@@ -44,16 +44,11 @@ type BskySearchOptions = {
   limit?: number
 }
 
-export const bskySearch = async (options: BskySearchOptions): Promise<BskySearchResult> => {
-  const cacheKey = [
-    'bsky',
-    options.query,
-    options.sort ?? 'latest',
-    options.limit ?? 25,
-  ].join(':')
+export const bskySearch = async ({ fetch, cache }: Deps, options: BskySearchOptions): Promise<BskySearchResult> => {
+  const cacheKey = ['bsky', options.query, options.sort ?? 'latest', options.limit ?? 25].join(':')
 
   const cached = await cache.get<BskySearchResult>(cacheKey)
-  if (cached && cached.posts && cached.posts.length > 0) return cached
+  if (cached) return cached
 
   const params = new URLSearchParams({ q: options.query })
 
@@ -61,26 +56,19 @@ export const bskySearch = async (options: BskySearchOptions): Promise<BskySearch
 
   if (options.limit) params.set('limit', String(options.limit))
 
-  const url = BSKY_API + '?' + params.toString()
-  const res = await fetch(url)
+  const res = await fetch(BSKY_API + '?' + params.toString())
 
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error('Bluesky search error (' + res.status + '): ' + text)
-  }
+  if (!res.ok) throw new Error('Bluesky search error (' + res.status + '): ' + (await res.text()))
 
-  const json: unknown = await res.json()
-  const response = responseSchema.parse(json)
+  const response = responseSchema.parse(await res.json())
 
+  // A post missing its author handle or text is dropped rather than failing the whole page.
   const posts = response.posts.flatMap((raw) => {
     const parsed = postSchema.safeParse(raw)
     return parsed.success ? [parsed.data] : []
   })
 
-  const hitsTotal = response.hitsTotal ?? posts.length
-  const cursor = response.cursor ?? ''
-
-  const result: BskySearchResult = { posts, hitsTotal, cursor }
+  const result: BskySearchResult = { posts, hitsTotal: response.hitsTotal ?? posts.length, cursor: response.cursor }
 
   if (posts.length > 0) await cache.set(cacheKey, result)
 

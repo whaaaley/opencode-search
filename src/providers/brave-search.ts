@@ -1,4 +1,4 @@
-import * as cache from '../cache.ts'
+import type { Deps } from '../deps.ts'
 import { fetchHtml, makeDom, type SearchResult } from '../html.ts'
 import { detectBlock, nextUserAgent } from '../strategies.ts'
 
@@ -10,27 +10,26 @@ const BLOCK_MARKERS = ['Verifying you are human', 'challenge-error']
 
 export type BraveResult = SearchResult
 
-export const braveSearch = async (query: string): Promise<BraveResult[]> => {
+const textOf = (element: Element | null): string => element?.textContent.trim() ?? ''
+
+export const braveSearch = async ({ fetch, cache }: Deps, query: string): Promise<BraveResult[]> => {
   const cacheKey = 'brave:' + query
 
   const cached = await cache.get<BraveResult[]>(cacheKey)
   if (cached) return cached
 
-  const html = await fetchHtml(BRAVE_URL + '?q=' + encodeURIComponent(query), nextUserAgent())
+  const html = await fetchHtml({ fetch, url: BRAVE_URL + '?q=' + encodeURIComponent(query), userAgent: nextUserAgent() })
   detectBlock('Brave', html, BLOCK_MARKERS)
 
   const doc = makeDom(html, BRAVE_URL)
-
-  const containers = doc.querySelectorAll('div.snippet[data-type="web"]')
   const results: BraveResult[] = []
 
-  for (const container of containers) {
-    const anchor = container.querySelector('a')
-    const title = container.querySelector('.title')?.textContent?.trim() ?? ''
-    const url = anchor?.getAttribute('href') ?? ''
-    const abstract = container.querySelector('.generic-snippet .content')?.textContent?.trim() ?? ''
+  for (const container of doc.querySelectorAll('div.snippet[data-type="web"]')) {
+    const title = textOf(container.querySelector('.title'))
+    const url = container.querySelector('a')?.getAttribute('href')
+    const abstract = textOf(container.querySelector('.generic-snippet .content'))
 
-    if (title && url.startsWith('http')) results.push({ title, url, abstract })
+    if (title && url?.startsWith('http')) results.push({ title, url, abstract })
   }
 
   await cache.set(cacheKey, results)

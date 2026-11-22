@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import * as cache from '../cache.ts'
+import type { Deps } from '../deps.ts'
 import { normalizeBlurb } from '../normalize-blurb.ts'
 import { USER_AGENT } from '../user-agent.ts'
 
@@ -36,37 +36,28 @@ type WikiSearchOptions = {
   limit?: number
 }
 
-export const wikiSearch = async (options: WikiSearchOptions): Promise<WikiSearchResult> => {
+export const wikiSearch = async ({ fetch, cache }: Deps, options: WikiSearchOptions): Promise<WikiSearchResult> => {
   const cacheKey = 'wiki:' + options.query + ':' + (options.limit ?? 10)
 
   const cached = await cache.get<WikiSearchResult>(cacheKey)
-  if (cached && cached.pages && cached.pages.length > 0) return cached
+  if (cached) return cached
 
   const params = new URLSearchParams({ q: options.query })
 
   if (options.limit) params.set('limit', String(options.limit))
 
-  const url = WIKI_API + '?' + params.toString()
-  const res = await fetch(url, {
-    headers: { 'User-Agent': USER_AGENT },
-  })
+  const res = await fetch(WIKI_API + '?' + params.toString(), { headers: { 'User-Agent': USER_AGENT } })
 
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error('Wikipedia search error (' + res.status + '): ' + text)
-  }
+  if (!res.ok) throw new Error('Wikipedia search error (' + res.status + '): ' + (await res.text()))
 
-  const json: unknown = await res.json()
-  const response = responseSchema.parse(json)
+  const response = responseSchema.parse(await res.json())
 
   const pages = response.pages.flatMap((raw) => {
     const parsed = pageSchema.safeParse(raw)
     return parsed.success ? [parsed.data] : []
   })
 
-  const result: WikiSearchResult = { pages }
+  if (pages.length > 0) await cache.set(cacheKey, { pages })
 
-  if (pages.length > 0) await cache.set(cacheKey, result)
-
-  return result
+  return { pages }
 }

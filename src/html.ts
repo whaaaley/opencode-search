@@ -7,26 +7,32 @@ export type SearchResult = {
   abstract: string
 }
 
+// A console with no listener keeps jsdom's parse errors out of the output.
 export const makeDom = (html: string, url: string): Document => {
-  const virtualConsole = new VirtualConsole()
-  virtualConsole.on('jsdomError', () => {
-    // Silently ignore JSDOM errors
-  })
-
-  return new JSDOM(html, { url, virtualConsole }).window.document
+  return new JSDOM(html, { url, virtualConsole: new VirtualConsole() }).window.document
 }
 
-export const fetchHtml = async (url: string, userAgent: string): Promise<string> => {
+// Matches the status heading block pages repeat before the useful sentence.
+export const statusHeadingPattern = /\b\d{3}\s*-?\s*(Forbidden|Too Many Requests)\b/gi
+
+const blockedStatuses: ReadonlySet<number> = new Set([403, 429])
+
+type FetchHtmlInput = {
+  fetch: typeof fetch
+  url: string
+  userAgent: string
+}
+
+export const fetchHtml = async ({ fetch, url, userAgent }: FetchHtmlInput): Promise<string> => {
   const res = await fetch(url, { headers: baseHeaders(userAgent) })
 
   // A bare status code reads as a transient fault and invites a retry.
-  if (res.status === 403 || res.status === 429) {
+  if (blockedStatuses.has(res.status)) {
     const body = await res.text().catch(() => '')
-    // Matches the status heading these pages repeat before the useful sentence.
     const reason = body
       .replace(/<[^>]+>/g, ' ')
       .replace(/\s+/g, ' ')
-      .replace(/\b\d{3}\s*-?\s*(Forbidden|Too Many Requests)\b/gi, '')
+      .replace(statusHeadingPattern, '')
       .trim()
       .slice(0, 140)
 

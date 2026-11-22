@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import * as cache from '../cache.ts'
+import type { Deps } from '../deps.ts'
 import { USER_AGENT } from '../user-agent.ts'
 
 const MDN_API = 'https://developer.mozilla.org/api/v1/search'
@@ -13,13 +13,17 @@ const documentSchema = z.object({
   popularity: z.number().default(0),
 })
 
+const totalSchema = z.object({
+  value: z.number(),
+})
+
+const metadataSchema = z.object({
+  total: totalSchema,
+})
+
 const responseSchema = z.object({
   documents: z.array(z.unknown()),
-  metadata: z.object({
-    total: z.object({
-      value: z.number(),
-    }),
-  }).optional(),
+  metadata: metadataSchema.optional(),
 })
 
 export type MdnDocument = z.infer<typeof documentSchema>
@@ -35,47 +39,30 @@ type MdnSearchOptions = {
   page?: number
 }
 
-export const mdnSearch = async (options: MdnSearchOptions): Promise<MdnSearchResult> => {
-  const cacheKey = [
-    'mdn',
-    options.query,
-    options.limit ?? 10,
-    options.page ?? 1,
-  ].join(':')
+export const mdnSearch = async ({ fetch, cache }: Deps, options: MdnSearchOptions): Promise<MdnSearchResult> => {
+  const cacheKey = ['mdn', options.query, options.limit ?? 10, options.page ?? 1].join(':')
 
   const cached = await cache.get<MdnSearchResult>(cacheKey)
-  if (cached && cached.documents && cached.documents.length > 0) return cached
+  if (cached) return cached
 
-  const params = new URLSearchParams({
-    q: options.query,
-    locale: 'en-US',
-  })
+  const params = new URLSearchParams({ q: options.query, locale: 'en-US' })
 
   if (options.limit) params.set('size', String(options.limit))
 
   if (options.page) params.set('page', String(options.page))
 
-  const url = MDN_API + '?' + params.toString()
-  const res = await fetch(url, {
-    headers: { 'User-Agent': USER_AGENT },
-  })
+  const res = await fetch(MDN_API + '?' + params.toString(), { headers: { 'User-Agent': USER_AGENT } })
 
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error('MDN search error (' + res.status + '): ' + text)
-  }
+  if (!res.ok) throw new Error('MDN search error (' + res.status + '): ' + (await res.text()))
 
-  const json: unknown = await res.json()
-  const response = responseSchema.parse(json)
+  const response = responseSchema.parse(await res.json())
 
   const documents = response.documents.flatMap((raw) => {
     const parsed = documentSchema.safeParse(raw)
     return parsed.success ? [parsed.data] : []
   })
 
-  const total = response.metadata?.total.value ?? documents.length
-
-  const result: MdnSearchResult = { documents, total }
+  const result: MdnSearchResult = { documents, total: response.metadata?.total.value ?? documents.length }
 
   if (documents.length > 0) await cache.set(cacheKey, result)
 

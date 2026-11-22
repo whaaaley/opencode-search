@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'bun:test'
-import { BlockedError, baseHeaders, detectBlock, nextUserAgent, runStrategies, USER_AGENTS } from './strategies.ts'
+import { describe, expect, it } from 'vite-plus/test'
+import { BlockedError, baseHeaders, detectBlock, nextUserAgent, runStrategies, type Strategy, USER_AGENTS } from './strategies.ts'
 
 describe('nextUserAgent', () => {
-  it('rotates through the pool', () => {
+  it('rotates through the pool', { meta: { steps: 2 } }, () => {
     const first = nextUserAgent()
     const second = nextUserAgent()
 
@@ -10,53 +10,74 @@ describe('nextUserAgent', () => {
     expect(USER_AGENTS.includes(second)).toEqual(true)
     expect(first === second).toEqual(false)
   })
+
+  it('hands out every agent in the pool before repeating one', { meta: { steps: 4 } }, () => {
+    const agents = USER_AGENTS.map(() => nextUserAgent())
+
+    expect(agents.toSorted()).toEqual(USER_AGENTS.toSorted())
+  })
 })
 
 describe('baseHeaders', () => {
-  it('includes the user agent', () => {
+  it('includes the user agent', { meta: { steps: 0 } }, () => {
     const headers = baseHeaders('test-agent')
 
-    expect(headers['User-Agent']).toEqual('test-agent')
-    expect(typeof headers['Accept']).toEqual('string')
+    expect(headers).toEqual({ 'User-Agent': 'test-agent', Accept: 'text/html', 'Accept-Encoding': 'gzip', DNT: '1' })
+  })
+})
+
+describe('BlockedError', () => {
+  it('names the source that blocked', { meta: { steps: 0 } }, () => {
+    const error = new BlockedError('Test')
+
+    expect(error.name).toEqual('BlockedError')
+    expect(error.message).toEqual('Test blocked the request (CAPTCHA or rate limit)')
   })
 })
 
 describe('detectBlock', () => {
-  it('throws BlockedError when a marker is present', () => {
+  it('throws BlockedError when a marker is present', { meta: { steps: 2 } }, () => {
     expect(() => detectBlock('Test', '<div class="anomaly-modal">', ['anomaly-modal'])).toThrow(BlockedError)
   })
 
-  it('does nothing when no marker is present', () => {
+  it('checks every marker', { meta: { steps: 3 } }, () => {
+    expect(() => detectBlock('Test', '<form id="challenge">', ['anomaly-modal', 'challenge'])).toThrow(BlockedError)
+  })
+
+  it('does nothing when no marker is present', { meta: { steps: 2 } }, () => {
     expect(() => detectBlock('Test', '<div>results</div>', ['anomaly-modal'])).not.toThrow()
   })
 })
 
 describe('runStrategies', () => {
-  it('returns the first non-empty result', async () => {
-    const results = await runStrategies([
+  it('returns the first non-empty result', { meta: { steps: 7 } }, async () => {
+    const strategies: Strategy<string>[] = [
       { name: 'a', run: async () => [] },
       { name: 'b', run: async () => ['result'] },
-    ])
+    ]
 
-    expect(results).toEqual(['result'])
+    expect(await runStrategies(strategies)).toEqual(['result'])
   })
 
-  it('falls through when a strategy throws', async () => {
-    const results = await runStrategies<string>([{
-      name: 'a',
-      run: async () => {
-        throw new Error('boom')
+  it('falls through when a strategy throws', { meta: { steps: 7 } }, async () => {
+    const strategies: Strategy<string>[] = [
+      {
+        name: 'a',
+        run: async () => {
+          throw new Error('boom')
+        },
       },
-    }, {
-      name: 'b',
-      run: async () => ['result'],
-    }])
+      {
+        name: 'b',
+        run: async () => ['result'],
+      },
+    ]
 
-    expect(results).toEqual(['result'])
+    expect(await runStrategies(strategies)).toEqual(['result'])
   })
 
-  it('throws the last error when everything fails', async () => {
-    const attempt = runStrategies([
+  it('throws the last error when everything fails', { meta: { steps: 7 } }, async () => {
+    const strategies: Strategy<string>[] = [
       { name: 'a', run: async () => [] },
       {
         name: 'b',
@@ -64,27 +85,31 @@ describe('runStrategies', () => {
           throw new Error('final failure')
         },
       },
-    ])
+    ]
 
-    await expect(attempt).rejects.toThrow('final failure')
+    await expect(runStrategies(strategies)).rejects.toThrow('final failure')
   })
 
-  it('hands each strategy a different user agent', async () => {
+  it('hands each strategy a different user agent', { meta: { steps: 7 } }, async () => {
     const seen: string[] = []
+    const strategies: Strategy<string>[] = [
+      {
+        name: 'a',
+        run: async (userAgent) => {
+          seen.push(userAgent)
+          return []
+        },
+      },
+      {
+        name: 'b',
+        run: async (userAgent) => {
+          seen.push(userAgent)
+          return ['done']
+        },
+      },
+    ]
 
-    await runStrategies([{
-      name: 'a',
-      run: async (userAgent) => {
-        seen.push(userAgent)
-        return []
-      },
-    }, {
-      name: 'b',
-      run: async (userAgent) => {
-        seen.push(userAgent)
-        return ['done']
-      },
-    }])
+    await runStrategies(strategies)
 
     expect(seen.length).toEqual(2)
     expect(seen[0] === seen[1]).toEqual(false)

@@ -24,12 +24,10 @@ export const renderGnewsItem = (result: GnewsResult, index: number): string => {
    ${result.url}`
 }
 
-export const renderBskyPost = (post: BskyPost, index: number): string => (
+export const renderBskyPost = (post: BskyPost, index: number): string =>
   `${index + 1}. @${post.author.handle} (${formatDateTime(post.record.createdAt)})
    ${normalizeBlurb(post.record.text)}
    Likes: ${post.likeCount}  Reposts: ${post.repostCount}  Replies: ${post.replyCount}`
-)
-
 
 export const renderWikiPage = (page: WikiPage, index: number): string => {
   const desc = page.description ? `\n   ${normalizeBlurb(page.description)}` : ''

@@ -1,4 +1,7 @@
-import { createSearchTools } from './src/search.ts'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createCache, fileAt } from './src/cache.ts'
+import { createSetup } from './src/plugin.ts'
 import { safeAsync } from './src/safe.ts'
 import { V1_MESSAGE } from './src/v1-message.ts'
 
@@ -10,13 +13,9 @@ if (error || typeof plugin.Plugin?.define !== 'function') {
   throw new Error(V1_MESSAGE, { cause: error ?? new Error('Plugin.define is not exported') })
 }
 
+const cache = createCache({ file: fileAt(join(dirname(fileURLToPath(import.meta.url)), '.cache')), now: Date.now })
+
 export default plugin.Plugin.define({
   id: 'opencode-search',
-  setup: async (ctx) => {
-    await ctx.tool.transform((tools) => {
-      for (const definition of createSearchTools(ctx)) {
-        tools.add(definition)
-      }
-    })
-  },
+  setup: createSetup({ fetch, cache }),
 })

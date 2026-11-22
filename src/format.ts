@@ -64,9 +64,7 @@ export const formatResults = <T>(options: FormatResultsOptions<T>): string => {
 
   if (items.length === 0) return header
 
-  const body = items
-    .map((item, i) => renderItem(item, i))
-    .join('\n\n')
+  const body = items.map((item, i) => renderItem(item, i)).join('\n\n')
 
   return header + '\n\n' + body
 }
