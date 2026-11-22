@@ -22,10 +22,13 @@ const textOutput = (text: string): Tool.Result => ({
   content: [{ type: 'text', text }],
 })
 
+// A limit or page below 1 has no meaning, and `slice(0, -n)` would turn a negative limit into nearly every result.
+const count = z.number().int().positive()
+
 const queryInput = z.object({ query: z.string() })
-const limitInput = z.object({ query: z.string(), limit: z.number().optional() })
-const bskyInput = z.object({ query: z.string(), limit: z.number().optional(), sort: z.string().optional() })
-const mdnInput = z.object({ query: z.string(), limit: z.number().optional(), page: z.number().optional() })
+const limitInput = z.object({ query: z.string(), limit: count.optional() })
+const bskyInput = z.object({ query: z.string(), limit: count.optional(), sort: z.string().optional() })
+const mdnInput = z.object({ query: z.string(), limit: count.optional(), page: count.optional() })
 
 const queryArg = {
   type: 'object',

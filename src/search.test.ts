@@ -218,6 +218,27 @@ describe('createSearchTools', () => {
     expect(await run({ name: 'rfc_search', input: { limit: 2 }, respond: failing })).toMatch(/^RFC search failed: /)
   })
 
+  it('refuses a limit or page below one, or not a whole number, before searching', { meta: { steps: 14 } }, async () => {
+    const urls: string[] = []
+    const respond = (url: string): Response => {
+      urls.push(url)
+      return failing()
+    }
+    const inputs = [
+      { name: 'gnews_search', input: { query: 'q', limit: -5 } },
+      { name: 'rfc_search', input: { query: 'q', limit: 0 } },
+      { name: 'w3c_search', input: { query: 'q', limit: 1.5 } },
+      { name: 'whatwg_search', input: { query: 'q', limit: -1 } },
+      { name: 'wiki_search', input: { query: 'q', limit: 0 } },
+      { name: 'bsky_search', input: { query: 'q', limit: -1 } },
+      { name: 'mdn_search', input: { query: 'q', page: 0 } },
+    ]
+
+    const answers = await Promise.all(inputs.map(({ name, input }) => run({ name, input, respond })))
+
+    expect(answers.every((answer) => answer.includes(' failed: '))).toEqual(true)
+    expect(urls).toEqual([])
+  })
 
   it('passes the bluesky limit and sort, paging by the limit', { meta: { steps: 22 } }, async () => {
     const urls: string[] = []
