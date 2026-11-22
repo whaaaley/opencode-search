@@ -28,13 +28,13 @@ const post = {
 }
 
 describe('standardSearch', () => {
-  it('reads each result into a document', async () => {
+  it('reads each result into a document', { meta: { steps: 12 } }, async () => {
     const documents = await standardSearch(depsAnswering(json({ results: [post], hasMore: false })), { query: 'q' })
 
     expect(documents).toEqual([{ title: 'Relays explained', url: 'https://example.leaflet.pub/relays', snippet: 'How <b>relays</b> work', date: '2026-11-17T14:48:33.000Z', platform: 'leaflet' }])
   })
 
-  it('asks for twenty from the start by default, in the paged format', async () => {
+  it('asks for twenty from the start by default, in the paged format', { meta: { steps: 9 } }, async () => {
     const urls: string[] = []
 
     await standardSearch(depsAnswering(json({ results: [] }), urls), { query: 'a b' })
@@ -42,7 +42,7 @@ describe('standardSearch', () => {
     expect(urls).toEqual(['https://api.pub-search.waow.tech/search?q=a+b&format=v2&limit=20&offset=0'])
   })
 
-  it('passes the limit and offset, asking for at most forty', async () => {
+  it('passes the limit and offset, asking for at most forty', { meta: { steps: 18 } }, async () => {
     const urls: string[] = []
 
     await standardSearch(depsAnswering(json({ results: [] }), urls), { query: 'q', limit: 5, offset: 10 })
@@ -54,17 +54,17 @@ describe('standardSearch', () => {
     ])
   })
 
-  it('skips results without a title or url and fills missing fields', async () => {
+  it('skips results without a title or url and fills missing fields', { meta: { steps: 17 } }, async () => {
     const results = [{ url: 'https://a' }, { title: 'No url' }, { title: 'B', url: 'https://b' }]
 
     expect(await standardSearch(depsAnswering(json({ results })), { query: 'q' })).toEqual([{ title: 'B', url: 'https://b', snippet: '', date: '', platform: '' }])
   })
 
-  it('returns nothing for an answer without results', async () => {
+  it('returns nothing for an answer without results', { meta: { steps: 9 } }, async () => {
     expect(await standardSearch(depsAnswering(json({})), { query: 'q' })).toEqual([])
   })
 
-  it('throws the status of a failed search', async () => {
+  it('throws the status of a failed search', { meta: { steps: 8 } }, async () => {
     const deps = depsAnswering(() => new Response('', { status: 429, statusText: 'Too Many Requests' }))
 
     await expect(standardSearch(deps, { query: 'q' })).rejects.toThrow('pub-search returned 429 Too Many Requests')
@@ -88,7 +88,7 @@ describe('standardSearch cache', () => {
     }),
   })
 
-  it('answers from the entry saved under its key', async () => {
+  it('answers from the entry saved under its key', { meta: { steps: 8 } }, async () => {
     const urls: string[] = []
     const saved = [{ title: 'saved', url: 'u', snippet: '', date: '', platform: '' }]
 
@@ -96,7 +96,7 @@ describe('standardSearch cache', () => {
     expect(urls).toEqual([])
   })
 
-  it('saves the results under its key, apart for each query, limit and offset', async () => {
+  it('saves the results under its key, apart for each query, limit and offset', { meta: { steps: 22 } }, async () => {
     const writes: string[] = []
     const urls: string[] = []
     const deps = depsWith({}, writes, urls)

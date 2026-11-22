@@ -207,7 +207,7 @@ describe('createSearchTools', () => {
     expect(result).toEqual({ content: [{ type: 'text', text: 'WHATWG results (0 results)' }] })
   })
 
-  it('answers a failed search with the provider and reason', { meta: { steps: 90 } }, async () => {
+  it('answers a failed search with the provider and reason', { meta: { steps: 100 } }, async () => {
     const posted: Posted[] = []
     const cases = [
       ['aws_docs_search', 'AWS docs search failed: AWS docs search returned 500 Down'],
@@ -232,7 +232,7 @@ describe('createSearchTools', () => {
     expect(await run({ name: 'rfc_search', input: { limit: 2 }, respond: failing })).toMatch(/^RFC search failed: /)
   })
 
-  it('refuses a limit or page below one, or not a whole number, before searching', { meta: { steps: 18 } }, async () => {
+  it('refuses a limit or page below one, or not a whole number, before searching', { meta: { steps: 20 } }, async () => {
     const urls: string[] = []
     const respond = (url: string): Response => {
       urls.push(url)
@@ -298,7 +298,7 @@ describe('createSearchTools', () => {
     expect(aws).toBe('AWS documentation results (showing 1-1 of 1, page 1)\n\n1. S3\n   https://docs.aws.amazon.com/s3\n   Buckets')
   })
 
-  it('passes the standard.site limit and offset and formats posts', async () => {
+  it('passes the standard.site limit and offset and formats posts', { meta: { steps: 19 } }, async () => {
     const urls: string[] = []
     const respond = (url: string): Response => {
       urls.push(url)

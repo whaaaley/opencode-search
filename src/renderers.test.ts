@@ -126,12 +126,12 @@ describe('renderBskyPost', () => {
 describe('renderStandardDoc', () => {
   const doc = { title: 'Relays', url: 'https://x.leaflet.pub/r', snippet: 'How <b>relays</b> work', date: '2026-11-17T14:48:33.000Z', platform: 'leaflet' }
 
-  it('renders the numbered title with its date, the url and the normalized snippet', () => {
+  it('renders the numbered title with its date, the url and the normalized snippet', { meta: { steps: 3 } }, () => {
     expect(renderStandardDoc(doc, 1)).toBe('2. Relays (Nov 17, 2026)\n   https://x.leaflet.pub/r\n   How relays work')
   })
 
-  it('leaves the date off when there is none', () => {
-    expect(renderStandardDoc({ ...doc, date: '' }, 0).split('\n')[0]).toBe('1. Relays')
+  it('leaves the date off when there is none', { meta: { steps: 1 } }, () => {
+    expect(renderStandardDoc({ ...doc, date: '' }, 3).split('\n')[0]).toBe('4. Relays')
   })
 })
 
