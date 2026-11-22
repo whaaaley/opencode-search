@@ -40,22 +40,23 @@ export type Strategy<T> = {
   run: (userAgent: string) => Promise<T[]>
 }
 
-// A strategy fails by throwing or by returning zero results; the next one gets a chance
+// A strategy fails by throwing or by returning zero results, and the next one gets a chance.
+// The error names every failure, so a block on one frontend is not hidden behind the next one's.
 export const runStrategies = async <T>(strategies: Strategy<T>[]): Promise<T[]> => {
-  let lastError: Error = new Error('no strategies provided')
+  const failures: string[] = []
 
   for (const strategy of strategies) {
     // oxlint-disable-next-line no-await-in-loop -- a later strategy runs only once the earlier ones have failed
     const { data, error } = await safeAsync(() => strategy.run(nextUserAgent()))
     if (error) {
-      lastError = error
+      failures.push(strategy.name + ': ' + error.message)
       continue
     }
 
     if (data.length > 0) return data
 
-    lastError = new Error(strategy.name + ' returned no results')
+    failures.push(strategy.name + ': no results')
   }
 
-  throw lastError
+  throw new Error(failures.join('; '))
 }

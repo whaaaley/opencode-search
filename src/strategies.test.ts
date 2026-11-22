@@ -76,7 +76,7 @@ describe('runStrategies', () => {
     expect(await runStrategies(strategies)).toEqual(['result'])
   })
 
-  it('throws the last error when everything fails', { meta: { steps: 7 } }, async () => {
+  it('names every failure when everything fails', { meta: { steps: 7 } }, async () => {
     const strategies: Strategy<string>[] = [
       { name: 'a', run: async () => [] },
       {
@@ -87,7 +87,7 @@ describe('runStrategies', () => {
       },
     ]
 
-    await expect(runStrategies(strategies)).rejects.toThrow('final failure')
+    await expect(runStrategies(strategies)).rejects.toThrow(new Error('a: no results; b: final failure'))
   })
 
   it('hands each strategy a different user agent', { meta: { steps: 7 } }, async () => {

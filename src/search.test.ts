@@ -199,7 +199,7 @@ describe('createSearchTools', () => {
     const cases = [
       ['brave_search', 'Brave search failed: 500 Down'],
       ['bsky_search', 'Bluesky search failed: Bluesky search error (500): '],
-      ['ddg_search', 'DuckDuckGo search failed: 500 Down'],
+      ['ddg_search', 'DuckDuckGo search failed: ddg-html: 500 Down; ddg-lite: 500 Down'],
       ['gnews_search', 'Google News search failed: Google News returned 500 Down'],
       ['mdn_search', 'MDN search failed: MDN search error (500): '],
       ['rfc_search', 'RFC search failed: IETF Datatracker returned 500 Down'],
