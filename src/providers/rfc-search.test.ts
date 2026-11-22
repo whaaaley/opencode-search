@@ -130,7 +130,9 @@ describe('rfcSearch cache', () => {
     expect(saved['rfc:q'].data).toEqual(first)
   })
 
-  it('fails when the results cannot be saved', async () => {
-    await expect(rfcSearch(depsWith({}, [], [], true), 'q')).rejects.toThrow('disk full')
+  it('still answers when the results cannot be saved', { meta: { steps: 22 } }, async () => {
+    const answer = await rfcSearch(depsWith({}, [], [], true), 'q')
+
+    expect(answer).toEqual(await rfcSearch(depsWith({}, [], []), 'q'))
   })
 })

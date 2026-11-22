@@ -162,7 +162,9 @@ describe('bskySearch cache', () => {
     expect(saved['bsky:q:latest:25'].data).toEqual(first)
   })
 
-  it('fails when the results cannot be saved', async () => {
-    await expect(bskySearch(depsWith({}, [], [], true), { query: 'q' })).rejects.toThrow('disk full')
+  it('still answers when the results cannot be saved', { meta: { steps: 28 } }, async () => {
+    const answer = await bskySearch(depsWith({}, [], [], true), { query: 'q' })
+
+    expect(answer).toEqual(await bskySearch(depsWith({}, [], []), { query: 'q' }))
   })
 })

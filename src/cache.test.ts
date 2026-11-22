@@ -95,22 +95,25 @@ describe('cache', () => {
     expect(await createCache({ file, now: () => CACHE_DURATION + 6 }).get('key')).toEqual(null)
   })
 
-  it('fails a read that drops an old entry when the file cannot be written', { meta: { steps: 5 } }, async () => {
+  it('still drops an old entry when the file cannot be written', { meta: { steps: 5 } }, async () => {
     const file = fileHolding(JSON.stringify({ key: { data: 'old', timestamp: 0 } }))
     file.write = async (): Promise<void> => {
       throw new Error('disk full')
     }
 
-    await expect(createCache({ file, now: () => CACHE_DURATION + 1 }).get('key')).rejects.toThrow('disk full')
+    expect(await createCache({ file, now: () => CACHE_DURATION + 1 }).get('key')).toEqual(null)
   })
 
-  it('fails a write when the file cannot be written', { meta: { steps: 3 } }, async () => {
+  it('keeps a value in memory when the file cannot be written', { meta: { steps: 6 } }, async () => {
     const file = fileHolding(null)
     file.write = async (): Promise<void> => {
       throw new Error('disk full')
     }
+    const cache = createCache({ file, now: () => 0 })
 
-    await expect(createCache({ file, now: () => 0 }).set('key', 1)).rejects.toThrow('disk full')
+    await cache.set('key', 1)
+
+    expect(await cache.get('key')).toEqual(1)
   })
 
   it('reads a file on disk as text', { meta: { steps: 0 } }, async () => {

@@ -70,7 +70,7 @@ export const bskySearch = async ({ fetch, cache }: Deps, options: BskySearchOpti
 
   const result: BskySearchResult = { posts, hitsTotal: response.hitsTotal ?? posts.length, cursor: response.cursor }
 
-  if (posts.length > 0) await cache.set(cacheKey, result)
+  if (posts.length > 0) void cache.set(cacheKey, result)
 
   return result
 }

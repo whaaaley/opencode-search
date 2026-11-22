@@ -139,7 +139,9 @@ describe('mdnSearch cache', () => {
     expect(saved['mdn:q:10:1'].data).toEqual(first)
   })
 
-  it('fails when the results cannot be saved', async () => {
-    await expect(mdnSearch(depsWith({}, [], [], true), { query: 'q' })).rejects.toThrow('disk full')
+  it('still answers when the results cannot be saved', { meta: { steps: 30 } }, async () => {
+    const answer = await mdnSearch(depsWith({}, [], [], true), { query: 'q' })
+
+    expect(answer).toEqual(await mdnSearch(depsWith({}, [], []), { query: 'q' }))
   })
 })

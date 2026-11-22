@@ -70,7 +70,7 @@ export const ddgSearch = async ({ fetch, cache }: Deps, query: string): Promise<
 
   const results = await runStrategies([strategyOf('ddg-html', HTML_FRONTEND), strategyOf('ddg-lite', LITE_FRONTEND)])
 
-  await cache.set(cacheKey, results)
+  void cache.set(cacheKey, results)
 
   return results
 }

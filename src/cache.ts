@@ -49,7 +49,10 @@ export const createCache = ({ file, now }: CacheInput): Cache => {
     return loading
   }
 
-  const save = (store: CacheStore): Promise<void> => file.write(JSON.stringify(store, null, 2))
+  // A failed write loses only the copy on disk, and the store in memory still serves this process, so a search never fails over it.
+  const save = (store: CacheStore): void => {
+    file.write(JSON.stringify(store, null, 2)).catch(() => {})
+  }
 
   return {
     get: async <T>(key: string): Promise<T | null> => {
@@ -59,7 +62,7 @@ export const createCache = ({ file, now }: CacheInput): Cache => {
 
       if (now() - entry.timestamp > CACHE_DURATION) {
         delete store[key]
-        await save(store)
+        save(store)
         return null
       }
 
@@ -68,7 +71,7 @@ export const createCache = ({ file, now }: CacheInput): Cache => {
     set: async (key: string, data: unknown): Promise<void> => {
       const store = await storeOf()
       store[key] = { data, timestamp: now() }
-      await save(store)
+      save(store)
     },
   }
 }

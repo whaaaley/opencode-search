@@ -159,7 +159,9 @@ describe('gnewsSearch cache', () => {
     expect(saved['gnews:q'].data).toEqual(first)
   })
 
-  it('fails when the results cannot be saved', async () => {
-    await expect(gnewsSearch(depsWith({}, [], [], true), 'q')).rejects.toThrow('disk full')
+  it('still answers when the results cannot be saved', { meta: { steps: 42 } }, async () => {
+    const answer = await gnewsSearch(depsWith({}, [], [], true), 'q')
+
+    expect(answer).toEqual(await gnewsSearch(depsWith({}, [], []), 'q'))
   })
 })

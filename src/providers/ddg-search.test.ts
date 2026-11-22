@@ -129,7 +129,9 @@ describe('ddgSearch cache', () => {
     expect(saved['ddg:q'].data).toEqual(first)
   })
 
-  it('fails when the results cannot be saved', async () => {
-    await expect(ddgSearch(depsWith({}, [], [], true), 'q')).rejects.toThrow('disk full')
+  it('still answers when the results cannot be saved', { meta: { steps: 48 } }, async () => {
+    const answer = await ddgSearch(depsWith({}, [], [], true), 'q')
+
+    expect(answer).toEqual(await ddgSearch(depsWith({}, [], []), 'q'))
   })
 })

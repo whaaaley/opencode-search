@@ -68,7 +68,7 @@ export const gnewsSearch = async ({ fetch, cache }: Deps, query: string, limit =
     if (title && url) results.push({ title, url, abstract: '', source, date: tagOf(item, 'pubDate') })
   }
 
-  await cache.set(cacheKey, results)
+  void cache.set(cacheKey, results)
 
   return results.slice(0, limit)
 }

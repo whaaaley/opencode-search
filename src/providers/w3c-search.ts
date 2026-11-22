@@ -57,7 +57,7 @@ export const w3cSearch = async ({ fetch, cache }: Deps, query: string, limit = D
     if (spec.title && url && spec.title.toLowerCase().includes(needle)) results.push({ title: spec.title, url })
   }
 
-  await cache.set(cacheKey, results)
+  void cache.set(cacheKey, results)
 
   return results.slice(0, limit)
 }

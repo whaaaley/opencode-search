@@ -64,7 +64,7 @@ export const mdnSearch = async ({ fetch, cache }: Deps, options: MdnSearchOption
 
   const result: MdnSearchResult = { documents, total: response.metadata?.total.value ?? documents.length }
 
-  if (documents.length > 0) await cache.set(cacheKey, result)
+  if (documents.length > 0) void cache.set(cacheKey, result)
 
   return result
 }

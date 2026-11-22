@@ -112,7 +112,9 @@ describe('w3cSearch cache', () => {
     expect(saved['w3c:q'].data).toEqual(first)
   })
 
-  it('fails when the results cannot be saved', async () => {
-    await expect(w3cSearch(depsWith({}, [], [], true), 'q')).rejects.toThrow('disk full')
+  it('still answers when the results cannot be saved', { meta: { steps: 28 } }, async () => {
+    const answer = await w3cSearch(depsWith({}, [], [], true), 'q')
+
+    expect(answer).toEqual(await w3cSearch(depsWith({}, [], []), 'q'))
   })
 })

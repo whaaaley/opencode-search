@@ -50,7 +50,7 @@ export const whatwgSearch = async ({ fetch, cache }: Deps, query: string, limit 
     }),
   )
 
-  await cache.set(cacheKey, results)
+  void cache.set(cacheKey, results)
 
   return results.slice(0, limit)
 }

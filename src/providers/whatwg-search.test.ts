@@ -118,7 +118,9 @@ describe('whatwgSearch cache', () => {
     expect(saved['whatwg:q'].data).toEqual(first)
   })
 
-  it('fails when the results cannot be saved', async () => {
-    await expect(whatwgSearch(depsWith({}, [], [], true), 'q')).rejects.toThrow('disk full')
+  it('still answers when the results cannot be saved', { meta: { steps: 24 } }, async () => {
+    const answer = await whatwgSearch(depsWith({}, [], [], true), 'q')
+
+    expect(answer).toEqual(await whatwgSearch(depsWith({}, [], []), 'q'))
   })
 })

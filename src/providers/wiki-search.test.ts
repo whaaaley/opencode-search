@@ -133,7 +133,9 @@ describe('wikiSearch cache', () => {
     expect(saved['wiki:q:10'].data).toEqual(first)
   })
 
-  it('fails when the results cannot be saved', async () => {
-    await expect(wikiSearch(depsWith({}, [], [], true), { query: 'q' })).rejects.toThrow('disk full')
+  it('still answers when the results cannot be saved', { meta: { steps: 22 } }, async () => {
+    const answer = await wikiSearch(depsWith({}, [], [], true), { query: 'q' })
+
+    expect(answer).toEqual(await wikiSearch(depsWith({}, [], []), { query: 'q' }))
   })
 })

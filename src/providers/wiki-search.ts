@@ -57,7 +57,7 @@ export const wikiSearch = async ({ fetch, cache }: Deps, options: WikiSearchOpti
     return parsed.success ? [parsed.data] : []
   })
 
-  if (pages.length > 0) await cache.set(cacheKey, { pages })
+  if (pages.length > 0) void cache.set(cacheKey, { pages })
 
   return { pages }
 }

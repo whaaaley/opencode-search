@@ -59,7 +59,7 @@ export const rfcSearch = async ({ fetch, cache }: Deps, query: string, limit = D
       abstract: doc.abstract,
     }))
 
-  await cache.set(cacheKey, results)
+  void cache.set(cacheKey, results)
 
   return results.slice(0, limit)
 }

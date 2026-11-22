@@ -32,7 +32,7 @@ export const braveSearch = async ({ fetch, cache }: Deps, query: string): Promis
     if (title && url?.startsWith('http')) results.push({ title, url, abstract })
   }
 
-  await cache.set(cacheKey, results)
+  void cache.set(cacheKey, results)
 
   return results
 }

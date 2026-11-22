@@ -115,7 +115,9 @@ describe('braveSearch cache', () => {
     expect(JSON.parse(writes.at(-1) ?? '{}')['brave:a'].data).toEqual([result])
   })
 
-  it('fails when the results cannot be saved', async () => {
-    await expect(braveSearch(depsWith({}, [], [], true), 'q')).rejects.toThrow('disk full')
+  it('still answers when the results cannot be saved', { meta: { steps: 44 } }, async () => {
+    const answer = await braveSearch(depsWith({}, [], [], true), 'q')
+
+    expect(answer).toEqual(await braveSearch(depsWith({}, [], []), 'q'))
   })
 })
