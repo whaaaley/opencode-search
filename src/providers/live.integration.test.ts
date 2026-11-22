@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test'
 import { createCache } from '../cache.ts'
 import type { Deps } from '../deps.ts'
+import { awsDocsSearch } from './aws-docs-search.ts'
 import { bskySearch } from './bsky-search.ts'
 import { firecrawlSearch } from './firecrawl-search.ts'
 import { mdnSearch } from './mdn-search.ts'
@@ -12,6 +13,12 @@ import { wikiSearch } from './wiki-search.ts'
 const live = (): Deps => ({ fetch, cache: createCache({ file: { read: async () => '{}', write: async () => {} }, now: Date.now }) })
 
 describe('live providers', () => {
+  it('finds AWS documentation pages', async () => {
+    const results = await awsDocsSearch(live(), 's3 bucket versioning', 3)
+
+    expect(results.length).toBeGreaterThan(0)
+    expect(results.every((result) => result.url.startsWith('https://docs.aws.amazon.com/'))).toEqual(true)
+  })
 
   it('finds Bluesky posts', async () => {
     expect((await bskySearch(live(), { query: 'atproto' })).posts.length).toBeGreaterThan(0)

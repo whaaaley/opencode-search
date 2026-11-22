@@ -1,16 +1,16 @@
 # opencode-search
 
-An [OpenCode](https://opencode.ai) plugin that gives your agent access to Firecrawl web search, Google News, Wikipedia, Bluesky, MDN Web Docs, and the IETF, W3C and WHATWG specifications.
+An [OpenCode](https://opencode.ai) plugin that gives your agent access to Firecrawl web search, Google News, Wikipedia, Bluesky, MDN Web Docs, the AWS documentation, and the IETF, W3C and WHATWG specifications.
 
 <img width="776" height="393" alt="OpenCode running wiki_search for pumpkins and listing three Wikipedia results" src="docs/screenshot.svg" />
 
 ## What this adds over OpenCode's built-in tools
 
-Eight search tools that work without an API key or an account. OpenCode 1 has no web search at all unless you use its own provider, and OpenCode 2's requires a key for Exa, Firecrawl, Parallel or Tavily.
+Nine search tools that work without an API key or an account. OpenCode 1 has no web search at all unless you use its own provider, and OpenCode 2's requires a key for Exa, Firecrawl, Parallel or Tavily.
 
 One is general web search: Firecrawl, through its keyless API, which is free up to a daily limit per IP address.
 
-The other seven search sources a general web search does not reach: Bluesky posts through the AT Protocol, Wikipedia and MDN through their own APIs, Google News for what is being published now, and the IETF, W3C and WHATWG specification indexes directly.
+The other eight search sources a general web search does not reach: Bluesky posts through the AT Protocol, Wikipedia, MDN and the AWS documentation through their own search APIs, Google News for what is being published now, and the IETF, W3C and WHATWG specification indexes directly.
 
 Google web search, DuckDuckGo, Brave, Mojeek and standard.site were removed — see [REMOVED.md](REMOVED.md) for what was tested and why.
 
@@ -39,6 +39,17 @@ Restart OpenCode. The plugin will be installed automatically.
 **0.0.9 is the last release for OpenCode 1 and will not be updated.** New providers and fixes land on 1.x, which requires OpenCode 2. Pin the version rather than tracking latest.
 
 ## Tools
+
+### aws_docs_search
+
+Search the AWS documentation on `docs.aws.amazon.com`. Returns page title, URL and summary.
+
+| Parameter | Type   | Required | Description                    |
+| --------- | ------ | -------- | ------------------------------ |
+| `query`   | string | yes      |                                |
+| `limit`   | number | no       | Number of results (default 10) |
+
+Uses the search service behind the AWS documentation site, the same one AWS's own [documentation MCP server](https://github.com/awslabs/mcp/tree/main/src/aws-documentation-mcp-server) calls. It needs no key.
 
 ### firecrawl_search
 

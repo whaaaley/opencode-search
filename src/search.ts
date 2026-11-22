@@ -4,6 +4,7 @@ import { z } from 'zod'
 import type { Deps } from './deps.ts'
 import { formatResults } from './format.ts'
 import { sendResult } from './opencode/notify.ts'
+import { awsDocsSearch } from './providers/aws-docs-search.ts'
 import { bskySearch } from './providers/bsky-search.ts'
 import { firecrawlSearch } from './providers/firecrawl-search.ts'
 import { gnewsSearch } from './providers/gnews-search.ts'
@@ -65,6 +66,18 @@ const searchTool = ({ context, name, description, input, failure, search }: Sear
 })
 
 export const createSearchTools = (context: Plugin.Context, deps: Deps): Tool.Info[] => [
+  searchTool({
+    context,
+    name: 'aws_docs_search',
+    description: ['Search the AWS documentation on docs.aws.amazon.com.', 'Use for how an AWS service, API, CLI command or configuration option works.', 'Returns page titles, URLs and summaries.'],
+    input: limitArg('Maximum number of results to return (default 10)'),
+    failure: 'AWS docs search',
+    search: async (raw) => {
+      const { query, limit } = limitInput.parse(raw)
+      const items = await awsDocsSearch(deps, query, limit)
+      return formatResults({ label: 'AWS documentation results', items, total: items.length, renderItem: renderWebResult })
+    },
+  }),
   searchTool({
     context,
     name: 'bsky_search',

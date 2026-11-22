@@ -62,6 +62,11 @@ describe('createSearchTools', () => {
 
     expect(tools.map(({ name, description, input }) => ({ name, description, input }))).toEqual([
       {
+        name: 'aws_docs_search',
+        description: ['Search the AWS documentation on docs.aws.amazon.com.', 'Use for how an AWS service, API, CLI command or configuration option works.', 'Returns page titles, URLs and summaries.'].join(' '),
+        input: limited('Maximum number of results to return (default 10)'),
+      },
+      {
         name: 'bsky_search',
         description: [
           'Search Bluesky posts for what people are saying about a topic right now.',
@@ -187,6 +192,7 @@ describe('createSearchTools', () => {
   it('answers a failed search with the provider and reason', { meta: { steps: 98 } }, async () => {
     const posted: Posted[] = []
     const cases = [
+      ['aws_docs_search', 'AWS docs search failed: AWS docs search returned 500 Down'],
       ['bsky_search', 'Bluesky search failed: Bluesky search error (500): '],
       ['firecrawl_search', 'Firecrawl search failed: Firecrawl returned 500 Down'],
       ['gnews_search', 'Google News search failed: Google News returned 500 Down'],
@@ -222,6 +228,7 @@ describe('createSearchTools', () => {
       { name: 'bsky_search', input: { query: 'q', limit: -1 } },
       { name: 'mdn_search', input: { query: 'q', page: 0 } },
       { name: 'firecrawl_search', input: { query: 'q', limit: 0 } },
+      { name: 'aws_docs_search', input: { query: 'q', limit: -3 } },
     ]
 
     const answers = await Promise.all(inputs.map(({ name, input }) => run({ name, input, respond })))
@@ -264,6 +271,12 @@ describe('createSearchTools', () => {
     expect(firecrawl).toBe('Firecrawl results (showing 1-1 of 1, page 1)\n\n1. W\n   https://w\n   about w')
   })
 
+  it('formats aws documentation results as web results', async () => {
+    const suggestions = [{ textExcerptSuggestion: { title: 'S3', link: 'https://docs.aws.amazon.com/s3', summary: 'Buckets' } }]
+    const aws = await run({ name: 'aws_docs_search', input: { query: 'q' }, respond: () => Response.json({ suggestions }) })
+
+    expect(aws).toBe('AWS documentation results (showing 1-1 of 1, page 1)\n\n1. S3\n   https://docs.aws.amazon.com/s3\n   Buckets')
+  })
 
   it('formats gnews, rfc, w3c and whatwg results with their limits', async () => {
     const gnews = await run({ name: 'gnews_search', input: { query: 'q', limit: 1 }, respond: () => new Response('<item><title>G</title><link>https://g</link></item>'.repeat(2)) })
