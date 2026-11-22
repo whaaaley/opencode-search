@@ -7,6 +7,13 @@ import type { RfcResult } from './providers/rfc-search.ts'
 import type { W3cResult } from './providers/w3c-search.ts'
 import type { WhatwgResult } from './providers/whatwg-search.ts'
 import type { WikiPage } from './providers/wiki-search.ts'
+import type { WebResult } from './web-result.ts'
+
+export const renderWebResult = (result: WebResult, index: number): string => {
+  return `${index + 1}. ${result.title}
+   ${result.url}
+   ${normalizeBlurb(result.abstract)}`
+}
 
 export const renderGnewsItem = (result: GnewsResult, index: number): string => {
   return `${index + 1}. ${result.title}

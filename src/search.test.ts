@@ -80,6 +80,15 @@ describe('createSearchTools', () => {
         },
       },
       {
+        name: 'firecrawl_search',
+        description: [
+          'Search the web with Firecrawl when you need current information from the internet.',
+          'Use for general web queries: products, people, events, how-tos, anything not covered by a more specific tool.',
+          'Returns titles, URLs and snippets. Works without an API key up to a daily limit per IP address.',
+        ].join(' '),
+        input: limited('Maximum number of results to return (default 10)'),
+      },
+      {
         name: 'gnews_search',
         description: [
           'Search Google News for recent news coverage of a topic.',
@@ -179,6 +188,7 @@ describe('createSearchTools', () => {
     const posted: Posted[] = []
     const cases = [
       ['bsky_search', 'Bluesky search failed: Bluesky search error (500): '],
+      ['firecrawl_search', 'Firecrawl search failed: Firecrawl returned 500 Down'],
       ['gnews_search', 'Google News search failed: Google News returned 500 Down'],
       ['mdn_search', 'MDN search failed: MDN search error (500): '],
       ['rfc_search', 'RFC search failed: IETF Datatracker returned 500 Down'],
@@ -211,6 +221,7 @@ describe('createSearchTools', () => {
       { name: 'wiki_search', input: { query: 'q', limit: 0 } },
       { name: 'bsky_search', input: { query: 'q', limit: -1 } },
       { name: 'mdn_search', input: { query: 'q', page: 0 } },
+      { name: 'firecrawl_search', input: { query: 'q', limit: 0 } },
     ]
 
     const answers = await Promise.all(inputs.map(({ name, input }) => run({ name, input, respond })))
@@ -245,6 +256,14 @@ describe('createSearchTools', () => {
     expect(urls).toEqual(['https://developer.mozilla.org/api/v1/search?q=q&locale=en-US&size=1&page=3'])
     expect(text).toBe('MDN Web Docs results (showing 1-1 of 30, page 1)\n\n1. X\n   https://developer.mozilla.org/x\n   ')
   })
+
+  it('formats firecrawl results as web results', async () => {
+    const web = { url: 'https://w', title: 'W', description: 'about <i>w</i>' }
+    const firecrawl = await run({ name: 'firecrawl_search', input: { query: 'q' }, respond: () => Response.json({ data: { web: [web] } }) })
+
+    expect(firecrawl).toBe('Firecrawl results (showing 1-1 of 1, page 1)\n\n1. W\n   https://w\n   about w')
+  })
+
 
   it('formats gnews, rfc, w3c and whatwg results with their limits', async () => {
     const gnews = await run({ name: 'gnews_search', input: { query: 'q', limit: 1 }, respond: () => new Response('<item><title>G</title><link>https://g</link></item>'.repeat(2)) })

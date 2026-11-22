@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vite-plus/test'
 import { createCache } from '../cache.ts'
 import type { Deps } from '../deps.ts'
 import { bskySearch } from './bsky-search.ts'
+import { firecrawlSearch } from './firecrawl-search.ts'
 import { mdnSearch } from './mdn-search.ts'
 import { rfcSearch } from './rfc-search.ts'
 import { w3cSearch } from './w3c-search.ts'
@@ -11,8 +12,13 @@ import { wikiSearch } from './wiki-search.ts'
 const live = (): Deps => ({ fetch, cache: createCache({ file: { read: async () => '{}', write: async () => {} }, now: Date.now }) })
 
 describe('live providers', () => {
+
   it('finds Bluesky posts', async () => {
     expect((await bskySearch(live(), { query: 'atproto' })).posts.length).toBeGreaterThan(0)
+  })
+
+  it('finds Firecrawl web results without a key', async () => {
+    expect((await firecrawlSearch(live(), 'typescript programming language')).length).toBeGreaterThan(0)
   })
 
   it('finds MDN documents', async () => {

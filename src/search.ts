@@ -5,13 +5,14 @@ import type { Deps } from './deps.ts'
 import { formatResults } from './format.ts'
 import { sendResult } from './opencode/notify.ts'
 import { bskySearch } from './providers/bsky-search.ts'
+import { firecrawlSearch } from './providers/firecrawl-search.ts'
 import { gnewsSearch } from './providers/gnews-search.ts'
 import { mdnSearch } from './providers/mdn-search.ts'
 import { rfcSearch } from './providers/rfc-search.ts'
 import { w3cSearch } from './providers/w3c-search.ts'
 import { whatwgSearch } from './providers/whatwg-search.ts'
 import { wikiSearch } from './providers/wiki-search.ts'
-import { renderBskyPost, renderGnewsItem, renderMdnDoc, renderRfc, renderW3c, renderWhatwg, renderWikiPage } from './renderers.ts'
+import { renderBskyPost, renderGnewsItem, renderMdnDoc, renderRfc, renderW3c, renderWebResult, renderWhatwg, renderWikiPage } from './renderers.ts'
 import { safeAsync } from './safe.ts'
 
 // No `output` field: declaring one without a matching output schema in the tool definition makes
@@ -87,6 +88,22 @@ export const createSearchTools = (context: Plugin.Context, deps: Deps): Tool.Inf
       const options = bskyInput.parse(raw)
       const { posts, hitsTotal } = await bskySearch(deps, options)
       return formatResults({ label: 'Bluesky results', items: posts, total: hitsTotal, limit: options.limit, offset: 0, renderItem: renderBskyPost })
+    },
+  }),
+  searchTool({
+    context,
+    name: 'firecrawl_search',
+    description: [
+      'Search the web with Firecrawl when you need current information from the internet.',
+      'Use for general web queries: products, people, events, how-tos, anything not covered by a more specific tool.',
+      'Returns titles, URLs and snippets. Works without an API key up to a daily limit per IP address.',
+    ],
+    input: limitArg('Maximum number of results to return (default 10)'),
+    failure: 'Firecrawl search',
+    search: async (raw) => {
+      const { query, limit } = limitInput.parse(raw)
+      const items = await firecrawlSearch(deps, query, limit)
+      return formatResults({ label: 'Firecrawl results', items, total: items.length, renderItem: renderWebResult })
     },
   }),
   searchTool({

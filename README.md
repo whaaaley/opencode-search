@@ -1,14 +1,16 @@
 # opencode-search
 
-An [OpenCode](https://opencode.ai) plugin that gives your agent access to Google News, Wikipedia, Bluesky, MDN Web Docs, and the IETF, W3C and WHATWG specifications.
+An [OpenCode](https://opencode.ai) plugin that gives your agent access to Firecrawl web search, Google News, Wikipedia, Bluesky, MDN Web Docs, and the IETF, W3C and WHATWG specifications.
 
 <img width="776" height="393" alt="OpenCode running wiki_search for pumpkins and listing three Wikipedia results" src="docs/screenshot.svg" />
 
 ## What this adds over OpenCode's built-in tools
 
-Seven search tools that work without an API key. OpenCode 1 has no web search at all unless you use its own provider, and OpenCode 2's requires a key for Exa, Firecrawl, Parallel or Tavily.
+Eight search tools that work without an API key or an account. OpenCode 1 has no web search at all unless you use its own provider, and OpenCode 2's requires a key for Exa, Firecrawl, Parallel or Tavily.
 
-Each one searches a source a general web search does not reach: Bluesky posts through the AT Protocol, Wikipedia and MDN through their own APIs, Google News for what is being published now, and the IETF, W3C and WHATWG specification indexes directly. None of them is a general web search; pair the plugin with one of OpenCode 2's keyed providers for that.
+One is general web search: Firecrawl, through its keyless API, which is free up to a daily limit per IP address.
+
+The other seven search sources a general web search does not reach: Bluesky posts through the AT Protocol, Wikipedia and MDN through their own APIs, Google News for what is being published now, and the IETF, W3C and WHATWG specification indexes directly.
 
 Google web search, DuckDuckGo, Brave, Mojeek and standard.site were removed — see [REMOVED.md](REMOVED.md) for what was tested and why.
 
@@ -37,6 +39,17 @@ Restart OpenCode. The plugin will be installed automatically.
 **0.0.9 is the last release for OpenCode 1 and will not be updated.** New providers and fixes land on 1.x, which requires OpenCode 2. Pin the version rather than tracking latest.
 
 ## Tools
+
+### firecrawl_search
+
+Search the web with [Firecrawl](https://docs.firecrawl.dev/features/search). Returns title, URL and snippet.
+
+| Parameter | Type   | Required | Description                    |
+| --------- | ------ | -------- | ------------------------------ |
+| `query`   | string | yes      |                                |
+| `limit`   | number | no       | Number of results (default 10) |
+
+Firecrawl answers search without an API key, up to a daily limit per IP address. Past that limit the tool reports Firecrawl's error rather than empty results.
 
 ### gnews_search
 
