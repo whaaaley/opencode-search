@@ -104,6 +104,30 @@ describe('cache', () => {
     expect(await createCache({ file, now: () => CACHE_DURATION + 1 }).get('key')).toEqual(null)
   })
 
+  it('finishes writing the file before a write returns', { meta: { steps: 3 } }, async () => {
+    const file = fileHolding(null)
+    file.write = async (text): Promise<void> => {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      file.writes.push(text)
+    }
+
+    await createCache({ file, now: () => 0 }).set('key', 1)
+
+    expect(file.writes.length).toEqual(1)
+  })
+
+  it('finishes writing the file before a read that drops an old entry returns', { meta: { steps: 5 } }, async () => {
+    const file = fileHolding(JSON.stringify({ key: { data: 'old', timestamp: 0 } }))
+    file.write = async (text): Promise<void> => {
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      file.writes.push(text)
+    }
+
+    await createCache({ file, now: () => CACHE_DURATION + 1 }).get('key')
+
+    expect(file.writes).toEqual(['{}'])
+  })
+
   it('keeps a value in memory when the file cannot be written', { meta: { steps: 6 } }, async () => {
     const file = fileHolding(null)
     file.write = async (): Promise<void> => {
