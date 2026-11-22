@@ -139,6 +139,24 @@ describe('createSearchTools', () => {
         },
       },
       {
+        name: 'standard_search',
+        description: [
+          'Search long-form posts published on the AT Protocol: standard.site documents and blogs on Leaflet, pckt, WhiteWind and similar platforms.',
+          'Use for essays, articles and blog posts from the ATmosphere, not short Bluesky posts.',
+          'Returns titles, URLs, dates and snippets.',
+        ].join(' '),
+        input: {
+          type: 'object',
+          properties: {
+            query,
+            limit: { type: 'number', description: 'Maximum number of results to return (default 20, at most 40)' },
+            offset: { type: 'number', description: 'Number of results to skip' },
+          },
+          required: ['query'],
+          additionalProperties: false,
+        },
+      },
+      {
         name: 'w3c_search',
         description: [
           'Look up a W3C specification by words in its title.',
@@ -198,6 +216,7 @@ describe('createSearchTools', () => {
       ['gnews_search', 'Google News search failed: Google News returned 500 Down'],
       ['mdn_search', 'MDN search failed: MDN search error (500): '],
       ['rfc_search', 'RFC search failed: IETF Datatracker returned 500 Down'],
+      ['standard_search', 'Standard.site search failed: pub-search returned 500 Down'],
       ['w3c_search', 'W3C search failed: W3C API returned 500 Down'],
       ['whatwg_search', 'WHATWG search failed: WHATWG index returned 500 Down'],
       ['wiki_search', 'Wikipedia search failed: Wikipedia search error (500): '],
@@ -229,6 +248,7 @@ describe('createSearchTools', () => {
       { name: 'mdn_search', input: { query: 'q', page: 0 } },
       { name: 'firecrawl_search', input: { query: 'q', limit: 0 } },
       { name: 'aws_docs_search', input: { query: 'q', limit: -3 } },
+      { name: 'standard_search', input: { query: 'q', offset: -1 } },
     ]
 
     const answers = await Promise.all(inputs.map(({ name, input }) => run({ name, input, respond })))
@@ -276,6 +296,19 @@ describe('createSearchTools', () => {
     const aws = await run({ name: 'aws_docs_search', input: { query: 'q' }, respond: () => Response.json({ suggestions }) })
 
     expect(aws).toBe('AWS documentation results (showing 1-1 of 1, page 1)\n\n1. S3\n   https://docs.aws.amazon.com/s3\n   Buckets')
+  })
+
+  it('passes the standard.site limit and offset and formats posts', async () => {
+    const urls: string[] = []
+    const respond = (url: string): Response => {
+      urls.push(url)
+      return Response.json({ results: [{ title: 'Relays', url: 'https://x.leaflet.pub/r', snippet: 'about relays', createdAt: '' }] })
+    }
+
+    const text = await run({ name: 'standard_search', input: { query: 'q', limit: 1, offset: 4 }, respond })
+
+    expect(urls).toEqual(['https://api.pub-search.waow.tech/search?q=q&format=v2&limit=1&offset=4'])
+    expect(text).toBe('Standard.site results (showing 1-1 of 1, page 1)\n\n1. Relays\n   https://x.leaflet.pub/r\n   about relays')
   })
 
   it('formats gnews, rfc, w3c and whatwg results with their limits', { meta: { steps: 97 } }, async () => {

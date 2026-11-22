@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vite-plus/test'
-import { renderBskyPost, renderGnewsItem, renderMdnDoc, renderRfc, renderW3c, renderWebResult, renderWhatwg, renderWikiPage } from './renderers.ts'
+import { renderBskyPost, renderGnewsItem, renderMdnDoc, renderRfc, renderStandardDoc, renderW3c, renderWebResult, renderWhatwg, renderWikiPage } from './renderers.ts'
 
 describe('renderWebResult', () => {
   it('renders the numbered title, url and normalized abstract', { meta: { steps: 0 } }, () => {
@@ -120,6 +120,18 @@ describe('renderBskyPost', () => {
     const lines = renderBskyPost(post, 0).split('\n')
     expect(lines[1]).toMatch(/^ {3}/)
     expect(lines[2]).toMatch(/^ {3}/)
+  })
+})
+
+describe('renderStandardDoc', () => {
+  const doc = { title: 'Relays', url: 'https://x.leaflet.pub/r', snippet: 'How <b>relays</b> work', date: '2026-11-17T14:48:33.000Z', platform: 'leaflet' }
+
+  it('renders the numbered title with its date, the url and the normalized snippet', () => {
+    expect(renderStandardDoc(doc, 1)).toBe('2. Relays (Nov 17, 2026)\n   https://x.leaflet.pub/r\n   How relays work')
+  })
+
+  it('leaves the date off when there is none', () => {
+    expect(renderStandardDoc({ ...doc, date: '' }, 0).split('\n')[0]).toBe('1. Relays')
   })
 })
 

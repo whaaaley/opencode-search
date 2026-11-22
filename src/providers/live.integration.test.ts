@@ -6,6 +6,7 @@ import { bskySearch } from './bsky-search.ts'
 import { firecrawlSearch } from './firecrawl-search.ts'
 import { mdnSearch } from './mdn-search.ts'
 import { rfcSearch } from './rfc-search.ts'
+import { standardSearch } from './standard-search.ts'
 import { w3cSearch } from './w3c-search.ts'
 import { whatwgSearch } from './whatwg-search.ts'
 import { wikiSearch } from './wiki-search.ts'
@@ -35,6 +36,13 @@ describe('live providers', () => {
   it('looks up an RFC by number and by title', async () => {
     expect((await rfcSearch(live(), 'RFC9421')).map((result) => result.id)).toEqual(['RFC9421'])
     expect((await rfcSearch(live(), 'HTTP Semantics')).length).toBeGreaterThan(0)
+  })
+
+  it('finds standard.site posts through pub-search', async () => {
+    const documents = await standardSearch(live(), { query: 'atproto', limit: 3 })
+
+    expect(documents.length).toBeGreaterThan(0)
+    expect(documents.every((document) => document.url.startsWith('https://'))).toEqual(true)
   })
 
   it('finds W3C specifications by title', async () => {

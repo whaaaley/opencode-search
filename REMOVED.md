@@ -34,16 +34,6 @@ Tested 2026-11-21 from a residential IP: the first search returned Brave's "Veri
 
 Brave's [Search API](https://brave.com/search/api/) is the supported route. It needs an API key, so a tool built on it would work only for users who set one up.
 
-## standard_search — standard.site
-
-The appview this tool queried, `standard-search.octet-stream.net`, no longer resolves. Checked 2026-09-19: no DNS record at all, so the host is gone rather than temporarily down.
-
-standard.site itself is alive and answers on `/`, but publishes no replacement search endpoint. `/docs` returns 200 and mentions none; `/api`, `/about` and `/developers` are 404.
-
-The provider had been kept in place with its live test soft-skipping while the host was unreachable. With the DNS record gone and nothing documented to point at, there is no endpoint to restore it to.
-
-Worth revisiting if standard.site publishes an appview again — the AT Protocol records it searched are structured and directly queryable, which no general web search substitutes for.
-
 ## mojeek_search — Mojeek
 
 Mojeek's [robots.txt](https://www.mojeek.com/robots.txt) is `Disallow: /search` for all user agents, and their [terms](https://www.mojeek.com/about/terms.html) prohibit automated access except by "an authorised Mojeek API user", stating that "scraping the Services without Our prior consent is expressly prohibited".

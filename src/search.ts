@@ -10,10 +10,11 @@ import { firecrawlSearch } from './providers/firecrawl-search.ts'
 import { gnewsSearch } from './providers/gnews-search.ts'
 import { mdnSearch } from './providers/mdn-search.ts'
 import { rfcSearch } from './providers/rfc-search.ts'
+import { standardSearch } from './providers/standard-search.ts'
 import { w3cSearch } from './providers/w3c-search.ts'
 import { whatwgSearch } from './providers/whatwg-search.ts'
 import { wikiSearch } from './providers/wiki-search.ts'
-import { renderBskyPost, renderGnewsItem, renderMdnDoc, renderRfc, renderW3c, renderWebResult, renderWhatwg, renderWikiPage } from './renderers.ts'
+import { renderBskyPost, renderGnewsItem, renderMdnDoc, renderRfc, renderStandardDoc, renderW3c, renderWebResult, renderWhatwg, renderWikiPage } from './renderers.ts'
 import { safeAsync } from './safe.ts'
 
 // No `output` field: declaring one without a matching output schema in the tool definition makes
@@ -28,6 +29,7 @@ const count = z.number().int().positive()
 const limitInput = z.object({ query: z.string(), limit: count.optional() })
 const bskyInput = z.object({ query: z.string(), limit: count.optional(), sort: z.string().optional() })
 const mdnInput = z.object({ query: z.string(), limit: count.optional(), page: count.optional() })
+const standardInput = z.object({ query: z.string(), limit: count.optional(), offset: z.number().int().nonnegative().optional() })
 
 const limitArg = (description: string) =>
   ({
@@ -183,6 +185,31 @@ export const createSearchTools = (context: Plugin.Context, deps: Deps): Tool.Inf
       const { query, limit } = limitInput.parse(raw)
       const items = await rfcSearch(deps, query, limit)
       return formatResults({ label: 'RFC results', items, total: items.length, renderItem: renderRfc })
+    },
+  }),
+  searchTool({
+    context,
+    name: 'standard_search',
+    description: [
+      'Search long-form posts published on the AT Protocol: standard.site documents and blogs on Leaflet, pckt, WhiteWind and similar platforms.',
+      'Use for essays, articles and blog posts from the ATmosphere, not short Bluesky posts.',
+      'Returns titles, URLs, dates and snippets.',
+    ],
+    input: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'The search query' },
+        limit: { type: 'number', description: 'Maximum number of results to return (default 20, at most 40)' },
+        offset: { type: 'number', description: 'Number of results to skip' },
+      },
+      required: ['query'],
+      additionalProperties: false,
+    },
+    failure: 'Standard.site search',
+    search: async (raw) => {
+      const options = standardInput.parse(raw)
+      const items = await standardSearch(deps, options)
+      return formatResults({ label: 'Standard.site results', items, total: items.length, renderItem: renderStandardDoc })
     },
   }),
   searchTool({

@@ -1,18 +1,18 @@
 # opencode-search
 
-An [OpenCode](https://opencode.ai) plugin that gives your agent access to Firecrawl web search, Google News, Wikipedia, Bluesky, MDN Web Docs, the AWS documentation, and the IETF, W3C and WHATWG specifications.
+An [OpenCode](https://opencode.ai) plugin that gives your agent access to Firecrawl web search, Google News, Wikipedia, Bluesky, standard.site, MDN Web Docs, the AWS documentation, and the IETF, W3C and WHATWG specifications.
 
 <img width="776" height="393" alt="OpenCode running wiki_search for pumpkins and listing three Wikipedia results" src="docs/screenshot.svg" />
 
 ## What this adds over OpenCode's built-in tools
 
-Nine search tools that work without an API key or an account. OpenCode 1 has no web search at all unless you use its own provider, and OpenCode 2's requires a key for Exa, Firecrawl, Parallel or Tavily.
+Ten search tools that work without an API key or an account. OpenCode 1 has no web search at all unless you use its own provider, and OpenCode 2's requires a key for Exa, Firecrawl, Parallel or Tavily.
 
 One is general web search: Firecrawl, through its keyless API, which is free up to a daily limit per IP address.
 
-The other eight search sources a general web search does not reach: Bluesky posts through the AT Protocol, Wikipedia, MDN and the AWS documentation through their own search APIs, Google News for what is being published now, and the IETF, W3C and WHATWG specification indexes directly.
+The other nine search sources a general web search does not reach: Bluesky posts and standard.site articles through the AT Protocol, Wikipedia, MDN and the AWS documentation through their own search APIs, Google News for what is being published now, and the IETF, W3C and WHATWG specification indexes directly.
 
-Google web search, DuckDuckGo, Brave, Mojeek and standard.site were removed — see [REMOVED.md](REMOVED.md) for what was tested and why.
+Google web search, DuckDuckGo, Brave and Mojeek were removed — see [REMOVED.md](REMOVED.md) for what was tested and why.
 
 ## Quick Start
 
@@ -111,6 +111,18 @@ Search IETF RFCs by title via the [Datatracker API](https://datatracker.ietf.org
 | `limit`   | number | no       | Number of results (default 20) |
 
 Matches on title only, so a query is a phrase from the RFC's name rather than its body.
+
+### standard_search
+
+Search long-form posts published on the AT Protocol: [standard.site](https://standard.site) documents and blogs on Leaflet, pckt, WhiteWind and similar platforms. Returns title, URL, date and snippet.
+
+| Parameter | Type   | Required | Description                                |
+| --------- | ------ | -------- | ------------------------------------------ |
+| `query`   | string | yes      |                                            |
+| `limit`   | number | no       | Number of results (default 20, at most 40) |
+| `offset`  | number | no       | Number of results to skip                  |
+
+Queries [pub-search](https://pub-search.waow.tech/), an open-source index of AT Protocol publishing platforms that standard.site's docs list under indexes and discovery. It needs no key. It is a third-party service, so it can change or go away, as the previous appview did.
 
 ### w3c_search
 
